@@ -1,0 +1,16 @@
+{
+  "name": "@acessa-evento/tokens",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Tokens do design system (cores dos 3 temas, espaço, raio, tipografia), gerados de tokens.json.",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "gerar": "node scripts/gerar.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node scripts/gerar.ts --conferir && node --test \"src/**/*.test.ts\""
+  }
+}
