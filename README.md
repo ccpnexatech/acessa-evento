@@ -2,13 +2,13 @@
 
 App de eventos acessível: inscrição, agenda, ingresso que funciona sem internet, check-in por QR e um assistente guiado para tirar dúvidas. Evento de referência: Congresso COCAL 2026, no Centro de Eventos do Ceará, de 1 a 3 de julho de 2026.
 
-> Projeto de portfólio em construção. Fase atual: **1, fundação**. Veja o [plano de execução](#plano).
+> Projeto de portfólio em construção. Fase atual: **3, acesso e conta** (fases 1 e 2 concluídas). Veja o [plano de execução](#plano).
 
 ## O que tem aqui
 
 | Pasta | O que é |
 | --- | --- |
-| `apps/api` | API em Node 22 nativo (`node:http`, `node:test`), clean architecture por módulo. Sem framework. |
+| `apps/api` | API em Node 22 nativo (`node:http`, `node:test`), clean architecture por módulo. Sem framework. Migrações SQL em `db/migracoes`. |
 | `apps/mobile` | App Expo (React Native) organizado por feature. |
 | `packages/tokens` | Tokens do design system (3 temas) gerados de `tokens.json`, com teste de contraste WCAG. |
 | `features/` | Comportamento esperado em Gherkin (pt-BR), um arquivo por fluxo. |
@@ -17,17 +17,19 @@ App de eventos acessível: inscrição, agenda, ingresso que funciona sem intern
 
 ## Como rodar
 
-Requisitos: Node 22.18 ou mais novo e npm 10.
+Requisitos: Node 22.18 ou mais novo, npm 10 e PostgreSQL 16 (para os testes de integração; ou defina `DATABASE_URL_TESTE`).
 
 ```bash
 npm install              # instala tudo e liga os hooks do git
 npm run verify           # lint, typecheck, testes, segurança e e2e
 
+npm run migrar -w @acessa-evento/api # aplica as migrações (DATABASE_URL_MIGRACAO)
+npm run semear -w @acessa-evento/api # cria o evento COCAL 2026
 npm start -w @acessa-evento/api      # API em http://localhost:3333/saude
 npm start -w @acessa-evento/mobile   # app no Expo
 ```
 
-A configuração da API fica em variáveis de ambiente; veja `apps/api/.env.example`.
+A configuração da API fica em variáveis de ambiente; veja `apps/api/.env.example`. A API conecta sempre com um usuário membro do papel `app_api`, nunca com o dono do esquema, para que a RLS valha ([ADR 0016](docs/adr/0016-banco-real-nos-testes-e-rls-sem-force.md)).
 
 ## Como contribuímos
 

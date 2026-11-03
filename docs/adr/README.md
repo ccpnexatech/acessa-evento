@@ -17,3 +17,4 @@
 | 0013 | [SQL puro com o driver pg, atrás de repositórios](0013-sql-puro-com-pg-e-repositorios.md) | Aceita |
 | 0014 | [API em Node nativo: node:http, node:test e type stripping](0014-api-em-node-nativo.md) | Aceita |
 | 0015 | [Commits direto na master, protegidos por um portão de qualidade local e no CI](0015-fluxo-git-e-portao-de-qualidade.md) | Aceita |
+| 0016 | [Testes contra PostgreSQL real e RLS sem FORCE](0016-banco-real-nos-testes-e-rls-sem-force.md) | Aceita |
