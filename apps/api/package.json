@@ -1,0 +1,17 @@
+{
+  "name": "@acessa-evento/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "API do Acessa Evento: Node nativo (node:http), clean architecture por módulo.",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "start": "node src/main/server.ts",
+    "dev": "node --watch src/main/server.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node --test --experimental-test-coverage --test-coverage-include=\"src/**\" --test-coverage-exclude=\"src/**/*.test.ts\" --test-coverage-exclude=\"src/main/server.ts\" --test-coverage-lines=90 --test-coverage-branches=85 \"src/**/*.test.ts\"",
+    "e2e": "node --test \"test/e2e/**/*.e2e.ts\""
+  }
+}

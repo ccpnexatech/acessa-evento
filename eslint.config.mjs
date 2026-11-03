@@ -19,6 +19,7 @@ export default tseslint.config(
   {
     // Clean architecture: domínio e aplicação não conhecem infraestrutura.
     files: ['apps/api/src/**/domain/**/*.ts', 'apps/api/src/**/application/**/*.ts'],
+    ignores: ['**/*.test.ts'],
     rules: {
       'no-restricted-imports': ['error', {
         patterns: [
