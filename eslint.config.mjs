@@ -1,0 +1,30 @@
+// Lint único para o monorepo. Regras de arquitetura (camadas) ficam em apps/api.
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+
+export default tseslint.config(
+  {
+    ignores: ['**/node_modules/**', '**/dist/**', '**/coverage/**', '**/.expo/**', 'apps/mobile/babel.config.js', 'apps/mobile/metro.config.js'],
+  },
+  js.configs.recommended,
+  ...tseslint.configs.strict,
+  {
+    rules: {
+      'no-console': 'error',
+      eqeqeq: ['error', 'always'],
+      '@typescript-eslint/consistent-type-imports': 'error',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
+  },
+  {
+    // Clean architecture: domínio e aplicação não conhecem infraestrutura.
+    files: ['apps/api/src/**/domain/**/*.ts', 'apps/api/src/**/application/**/*.ts'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [
+          { group: ['node:*', 'pg', '**/adapters/**', '**/infra/**', '**/main/**'], message: 'Domínio e aplicação dependem só de portas (interfaces), nunca de infraestrutura.' },
+        ],
+      }],
+    },
+  },
+);

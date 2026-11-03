@@ -1,0 +1,32 @@
+{
+  "name": "acessa-evento",
+  "private": true,
+  "description": "App de eventos acessível: inscrição, agenda, ingresso offline e credenciamento.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0",
+    "npm": ">=10"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc -p tsconfig.json && npm run typecheck --workspaces --if-present",
+    "test": "node --test \"scripts/**/*.test.ts\" && npm run test --workspaces --if-present",
+    "e2e": "npm run e2e --workspaces --if-present",
+    "security": "node scripts/security-check.ts",
+    "verify": "node scripts/verify.ts",
+    "hooks": "git config core.hooksPath .githooks",
+    "postinstall": "node scripts/install-hooks.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@types/node": "22.20.5",
+    "eslint": "9.39.5",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.1"
+  }
+}

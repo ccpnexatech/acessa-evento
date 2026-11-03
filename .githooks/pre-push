@@ -1,0 +1,3 @@
+#!/bin/sh
+# Nada sobe sem lint, typecheck, testes, segurança e e2e verdes.
+exec npm run --silent verify

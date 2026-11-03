@@ -1,0 +1,3 @@
+#!/bin/sh
+# Rejeita mensagens fora do padrão Conventional Commits.
+exec node scripts/commit-msg.ts "$1"
