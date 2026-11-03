@@ -1,21 +1,28 @@
 /**
- * Tela provisória da fase 0: prova que tema, tokens e acessibilidade estão
- * ligados de ponta a ponta. Será substituída pela Agenda na fase 4.
+ * Tela provisória pós-login: confirma que o acesso funciona de ponta a ponta.
+ * Será substituída pela Agenda na fase 4.
  */
 import { StyleSheet, Text, View } from 'react-native';
 import { espaco, tipografia } from '@acessa-evento/tokens';
 import { useTema } from '../../shared/tema/TemaProvider';
+import { Botao } from '../../shared/ui/componentes';
 
-export function BoasVindasScreen() {
+interface Props {
+  readonly nome?: string | null;
+  readonly onSair?: () => void;
+}
+
+export function BoasVindasScreen({ nome, onSair }: Props) {
   const { cores } = useTema();
   return (
     <View style={[estilos.tela, { backgroundColor: cores.surface000 }]} testID="tela-boas-vindas">
       <Text accessibilityRole="header" style={[estilos.titulo, { color: cores.ink900 }]}>
-        Acessa Evento
+        {nome ? `Olá, ${nome}` : 'Acessa Evento'}
       </Text>
       <Text style={[estilos.texto, { color: cores.ink600 }]}>
         Seu ingresso, a agenda e a ajuda do evento num lugar só, com ou sem internet.
       </Text>
+      {onSair ? <Botao variante="secundario" rotulo="Sair" onPress={onSair} /> : null}
     </View>
   );
 }
