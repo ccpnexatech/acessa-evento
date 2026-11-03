@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 15
     env:
       CI: 'true'
-      DATABASE_URL_TESTE: postgres://postgres:postgres@localhost:5432/postgres
+      DATABASE_URL_TESTE: postgres://postgres:postgres@127.0.0.1:5432/postgres
     services:
       postgres:
         image: postgres:16-alpine

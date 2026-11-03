@@ -11,8 +11,8 @@
     "start": "node src/main/server.ts",
     "dev": "node --watch src/main/server.ts",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "node --test --experimental-test-coverage --test-coverage-include=\"src/**\" --test-coverage-exclude=\"src/**/*.test.ts\" --test-coverage-exclude=\"src/main/server.ts\" --test-coverage-lines=90 --test-coverage-branches=85 \"src/**/*.test.ts\"",
-    "e2e": "node ../../scripts/banco-teste.ts node --test --test-concurrency=4 \"test/**/*.e2e.ts\" \"test/**/*.int.ts\"",
+    "test": "node --test --test-timeout=30000 --experimental-test-coverage --test-coverage-include=\"src/**\" --test-coverage-exclude=\"src/**/*.test.ts\" --test-coverage-exclude=\"src/main/server.ts\" --test-coverage-lines=90 --test-coverage-branches=85 \"src/**/*.test.ts\"",
+    "e2e": "node ../../scripts/banco-teste.ts node --test --test-concurrency=4 --test-timeout=60000 \"test/**/*.e2e.ts\" \"test/**/*.int.ts\"",
     "migrar": "node src/main/migrar.ts",
     "semear": "node src/main/semear.ts"
   },

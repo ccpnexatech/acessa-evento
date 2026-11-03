@@ -22,14 +22,14 @@ export async function criarBancoDeTeste(opcoes: { migrar?: boolean } = {}): Prom
   const base = process.env['DATABASE_URL_TESTE'];
   if (!base) throw new Error('DATABASE_URL_TESTE ausente. Rode pelo npm run e2e (scripts/banco-teste.ts).');
   const nome = `teste_${randomBytes(6).toString('hex')}`;
-  const admin = new pg.Client({ connectionString: base });
+  const admin = new pg.Client({ connectionString: base, connectionTimeoutMillis: 5_000 });
   await admin.connect();
   await admin.query(`create database ${nome}`);
   await admin.end();
 
   const url = new URL(base);
   url.pathname = `/${nome}`;
-  const dono = new pg.Client({ connectionString: url.toString() });
+  const dono = new pg.Client({ connectionString: url.toString(), connectionTimeoutMillis: 5_000 });
   await dono.connect();
   if (opcoes.migrar !== false) await migrar(dono, lerMigracoes(PASTA_MIGRACOES));
 
@@ -38,7 +38,7 @@ export async function criarBancoDeTeste(opcoes: { migrar?: boolean } = {}): Prom
     dono,
     async apagar() {
       await dono.end();
-      const a = new pg.Client({ connectionString: base });
+      const a = new pg.Client({ connectionString: base, connectionTimeoutMillis: 5_000 });
       await a.connect();
       await a.query(`drop database if exists ${nome} with (force)`);
       await a.end();
