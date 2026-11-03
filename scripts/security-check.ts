@@ -9,11 +9,28 @@ import { readFileSync, statSync } from 'node:fs';
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 let falhou = false;
 
-// 1. Dependências
-const audit = spawnSync(npm, ['audit', '--audit-level=high'], { stdio: 'inherit', shell: process.platform === 'win32' });
-if (audit.status !== 0) {
-  process.stderr.write('✖ npm audit encontrou vulnerabilidade alta ou crítica.\n');
+// 1. Dependências: resumo numa linha; detalhe só do que bloqueia (alta ou crítica).
+const audit = spawnSync(npm, ['audit', '--json'], { encoding: 'utf8', shell: process.platform === 'win32', maxBuffer: 64 * 1024 * 1024 });
+interface Relatorio {
+  metadata?: { vulnerabilities?: Record<string, number> };
+  vulnerabilities?: Record<string, { severity: string; via: unknown[] }>;
+}
+let relatorio: Relatorio = {};
+try {
+  relatorio = JSON.parse(audit.stdout || '{}') as Relatorio;
+} catch {
+  process.stderr.write('✖ npm audit não respondeu (sem internet ou registro fora do ar).\n');
   falhou = true;
+}
+const contagem = relatorio.metadata?.vulnerabilities ?? {};
+const bloqueiam = Object.entries(relatorio.vulnerabilities ?? {}).filter(([, v]) => v.severity === 'high' || v.severity === 'critical');
+if (bloqueiam.length) {
+  for (const [nome, v] of bloqueiam) process.stderr.write(`✖ ${v.severity}: ${nome}\n`);
+  process.stderr.write('Rode `npm audit` para ver os detalhes e a correção.\n');
+  falhou = true;
+} else if (relatorio.metadata) {
+  const abaixo = ['low', 'moderate'].map((n) => `${contagem[n] ?? 0} ${n === 'low' ? 'baixa(s)' : 'moderada(s)'}`).join(', ');
+  process.stdout.write(`✔ Dependências sem falha alta ou crítica (abaixo do limite: ${abaixo}).\n`);
 }
 
 // 2. Segredos nos arquivos versionados (e nos que estão para entrar no commit)
@@ -59,4 +76,4 @@ for (const arquivo of arquivos) {
 }
 
 if (falhou) process.exit(1);
-process.stdout.write(`✔ Segurança: dependências sem falhas altas e ${arquivos.length} arquivos sem segredos.\n`);
+process.stdout.write(`✔ ${arquivos.length} arquivos versionados sem segredos.\n`);
