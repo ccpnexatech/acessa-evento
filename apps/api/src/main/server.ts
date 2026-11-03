@@ -3,9 +3,8 @@ import { readFileSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
 import { LoggerJson } from '../shared/logger.ts';
 import { Banco } from '../shared/db/banco.ts';
-import { verificadorBanco } from '../shared/db/verificador-banco.ts';
 import { lerConfig } from './config.ts';
-import { criarApp } from './app.ts';
+import { criarApp, dependenciasConta, verificadoresPadrao } from './app.ts';
 
 const logger = new LoggerJson((linha) => process.stdout.write(linha));
 
@@ -18,13 +17,14 @@ try {
 }
 
 const { version } = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as { version?: string };
-const banco = config.databaseUrl ? new Banco({ url: config.databaseUrl }) : undefined;
+const banco = config.banco ? new Banco({ url: config.banco.url }) : undefined;
 const servidor = criarApp({
   config,
   logger,
   relogio: { agoraMs: () => Date.now() },
   versao: version ?? '0.0.0',
-  verificadores: banco ? [verificadorBanco(banco)] : [],
+  verificadores: verificadoresPadrao(banco),
+  ...(banco && config.banco ? { conta: dependenciasConta(banco, config.banco, logger) } : {}),
 });
 
 servidor.listen(config.porta, () => {
