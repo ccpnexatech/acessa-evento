@@ -5,6 +5,8 @@ export interface Config {
   readonly porta: number;
   readonly ambiente: Ambiente;
   readonly corsOrigens: readonly string[];
+  /** Usuário da API (papel app_api). Ausente = API sobe sem banco (só /saude). */
+  readonly databaseUrl?: string;
 }
 
 const AMBIENTES: readonly Ambiente[] = ['desenvolvimento', 'teste', 'producao'];
@@ -25,6 +27,10 @@ export function lerConfig(env: Readonly<Record<string, string | undefined>>): Co
     if (ambiente === 'producao' && o.startsWith('http://')) erros.push(`CORS_ORIGENS sem HTTPS em produção: "${o}"`);
   }
 
+  const databaseUrl = env['DATABASE_URL'];
+  if (databaseUrl !== undefined && !/^postgres(?:ql)?:\/\//.test(databaseUrl)) erros.push('DATABASE_URL precisa começar com postgres://');
+  if (ambiente === 'producao' && !databaseUrl) erros.push('DATABASE_URL é obrigatória em produção');
+
   if (erros.length) throw new Error(`Configuração inválida:\n- ${erros.join('\n- ')}`);
-  return { porta, ambiente, corsOrigens };
+  return databaseUrl ? { porta, ambiente, corsOrigens, databaseUrl } : { porta, ambiente, corsOrigens };
 }
