@@ -41,7 +41,8 @@ const PADROES: ReadonlyArray<readonly [string, RegExp]> = [
   ['token do Slack', /\bxox[abprs]-[A-Za-z0-9-]{10,}\b/],
   ['JWT', /\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/],
   ['service role do Supabase', /service_role["'\s:=]+["']?eyJ/i],
-  ['segredo atribuído', /\b(?:password|senha|secret|api[_-]?key|token)\s*[:=]\s*["'][^"'\s]{12,}["']/i],
+  // Valor com cara de segredo: 16+ caracteres com letra e dígito (evita nomes como 'sessao.token').
+  ['segredo atribuído', /\b(?:password|senha|secret|api[_-]?key|token)\s*[:=]\s*["'](?=[^"'\s]*\d)(?=[^"'\s]*[a-z])[^"'\s]{16,}["']/i],
 ];
 const IGNORAR = /(?:^|\/)(?:package-lock\.json|.*\.(?:png|jpg|jpeg|gif|webp|ico|ttf|otf|woff2?))$/;
 
