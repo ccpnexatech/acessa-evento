@@ -10,7 +10,7 @@ const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 let falhou = false;
 
 // 1. Dependências
-const audit = spawnSync(npm, ['audit', '--audit-level=high'], { stdio: 'inherit' });
+const audit = spawnSync(npm, ['audit', '--audit-level=high'], { stdio: 'inherit', shell: process.platform === 'win32' });
 if (audit.status !== 0) {
   process.stderr.write('✖ npm audit encontrou vulnerabilidade alta ou crítica.\n');
   falhou = true;
