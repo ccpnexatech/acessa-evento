@@ -13,6 +13,7 @@ App de eventos acessível: inscrição, agenda, ingresso que funciona sem intern
 | `packages/tokens` | Tokens do design system (3 temas) gerados de `tokens.json`, com teste de contraste WCAG. |
 | `features/` | Comportamento esperado em Gherkin (pt-BR), um arquivo por fluxo. |
 | `docs/adr/` | Decisões de arquitetura e seus trade-offs. |
+| `docs/teste-manual.md` | Roteiro para subir banco, API e app e testar à mão. |
 | `scripts/` | Portão de qualidade, verificação de segurança e validação de commits, sem dependências. |
 
 ## Como rodar
