@@ -1,6 +1,6 @@
 # 0003. Supabase como banco gerenciado e provedor de autenticação
 
-- Status: Aceita
+- Status: Substituída pela [0017](0017-autenticacao-propria-com-codigo-e-sessao-opaca.md)
 - Data: 2026-11-02
 
 ## Contexto

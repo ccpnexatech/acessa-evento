@@ -4,7 +4,7 @@
 | --- | --- | --- |
 | 0001 | [Registrar decisões em ADRs](0001-registrar-decisoes-em-adrs.md) | Aceita |
 | 0002 | [PostgreSQL com isolamento por evento via RLS](0002-postgresql-com-isolamento-por-evento-via-rls.md) | Aceita |
-| 0003 | [Supabase como banco gerenciado e provedor de autenticação](0003-supabase-como-banco-gerenciado-e-provedor-de-autenticac.md) | Aceita |
+| 0003 | [Supabase como banco gerenciado e provedor de autenticação](0003-supabase-como-banco-gerenciado-e-provedor-de-autenticac.md) | Substituída pela 0017 |
 | 0004 | [Prisma como ORM, com migrações em SQL](0004-prisma-como-orm-com-migracoes-em-sql.md) | Substituída pela 0013 |
 | 0005 | [Auditoria só de inserção com cadeia de hash](0005-auditoria-so-de-insercao-com-cadeia-de-hash.md) | Aceita |
 | 0006 | [QR do ingresso assinado com Ed25519 e validado offline](0006-qr-do-ingresso-assinado-com-ed25519-e-validado-offline.md) | Aceita |
@@ -18,3 +18,4 @@
 | 0014 | [API em Node nativo: node:http, node:test e type stripping](0014-api-em-node-nativo.md) | Aceita |
 | 0015 | [Commits direto na master, protegidos por um portão de qualidade local e no CI](0015-fluxo-git-e-portao-de-qualidade.md) | Aceita |
 | 0016 | [Testes contra PostgreSQL real e RLS sem FORCE](0016-banco-real-nos-testes-e-rls-sem-force.md) | Aceita |
+| 0017 | [Autenticação própria: código por e-mail e sessão opaca](0017-autenticacao-propria-com-codigo-e-sessao-opaca.md) | Aceita |

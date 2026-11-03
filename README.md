@@ -2,7 +2,7 @@
 
 App de eventos acessível: inscrição, agenda, ingresso que funciona sem internet, check-in por QR e um assistente guiado para tirar dúvidas. Evento de referência: Congresso COCAL 2026, no Centro de Eventos do Ceará, de 1 a 3 de julho de 2026.
 
-> Projeto de portfólio em construção. Fase atual: **3, acesso e conta** (fases 1 e 2 concluídas). Veja o [plano de execução](#plano).
+> Projeto de portfólio em construção. Fase atual: **4, agenda e palestra offline** (fases 1 a 3 concluídas). Veja o [plano de execução](#plano).
 
 ## O que tem aqui
 
@@ -28,6 +28,8 @@ npm run semear -w @acessa-evento/api # cria o evento COCAL 2026
 npm start -w @acessa-evento/api      # API em http://localhost:3333/saude
 npm start -w @acessa-evento/mobile   # app no Expo
 ```
+
+Para testar o login no app, rode a API com `EMAIL_PROVEDOR=dev`: o código de 6 números aparece no log da API (`codigoDesenvolvimento`). No app, defina `EXPO_PUBLIC_API_URL` (veja `apps/mobile/.env.example`).
 
 A configuração da API fica em variáveis de ambiente; veja `apps/api/.env.example`. A API conecta sempre com um usuário membro do papel `app_api`, nunca com o dono do esquema, para que a RLS valha ([ADR 0016](docs/adr/0016-banco-real-nos-testes-e-rls-sem-force.md)).
 
@@ -57,6 +59,21 @@ A configuração da API fica em variáveis de ambiente; veja `apps/api/.env.exam
 | 6 | Ingresso e credenciamento offline | `04-ingresso-e-credenciamento` |
 | 7 | Assistente guiado | `05-assistente-guiado` |
 | 8 | Auditoria de acessibilidade e lançamento | `06-acessibilidade` |
+
+## API
+
+| Método e rota | O que faz |
+| --- | --- |
+| `GET /saude` | Estado da API e do banco (monitor de disponibilidade) |
+| `POST /acesso/codigo` | Envia o código de 6 números para o e-mail |
+| `POST /acesso/entrar` | Troca e-mail + código por uma sessão; cria a conta no primeiro login |
+| `POST /acesso/sair` | Encerra a sessão atual |
+| `GET /conta` | Dados da conta |
+| `PUT /conta/primeiro-acesso` | Nome do crachá e aceite dos termos |
+| `GET /conta/exportacao` | Baixa todos os dados da pessoa (LGPD) |
+| `DELETE /conta` | Exclui a conta |
+
+Erros seguem o formato Problem Details (RFC 9457) com um `codigo` estável e uma mensagem pronta para a pessoa.
 
 ## Impacto
 
