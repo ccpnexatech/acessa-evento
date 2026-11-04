@@ -22,6 +22,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "scheme": "acessaevento",
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ]
   }
 }
