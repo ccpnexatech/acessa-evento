@@ -18,21 +18,17 @@ App de eventos acessível: inscrição, agenda, ingresso que funciona sem intern
 
 ## Como rodar
 
-Requisitos: Node 22.18 ou mais novo, npm 10 e PostgreSQL 16 (para os testes de integração; ou defina `DATABASE_URL_TESTE`).
+Requisitos: Node 22.18 ou mais novo e Docker (ou PostgreSQL 14+ instalado).
 
 ```bash
-npm install              # instala tudo e liga os hooks do git
-npm run verify           # lint, typecheck, testes, segurança e e2e
-
-npm run migrar -w @acessa-evento/api # aplica as migrações (DATABASE_URL_MIGRACAO)
-npm run semear -w @acessa-evento/api # cria o evento COCAL 2026
-npm start -w @acessa-evento/api      # API em http://localhost:3333/saude
-npm start -w @acessa-evento/mobile   # app no Expo
+npm install      # instala tudo e liga os hooks do git
+npm run dev      # banco, API, links públicos e app Expo, num comando
+npm run verify   # lint, typecheck, testes, segurança e e2e
 ```
 
-Para testar o login no app, rode a API com `EMAIL_PROVEDOR=dev`: o código de 6 números aparece no log da API (`codigoDesenvolvimento`). No app, defina `EXPO_PUBLIC_API_URL` (veja `apps/mobile/.env.example`).
+O `npm run dev` mostra um QR para abrir o app no celular, em qualquer rede, e os códigos de acesso no próprio terminal. Detalhes e opções em [docs/teste-manual.md](docs/teste-manual.md).
 
-A configuração da API fica em variáveis de ambiente; veja `apps/api/.env.example`. A API conecta sempre com um usuário membro do papel `app_api`, nunca com o dono do esquema, para que a RLS valha ([ADR 0016](docs/adr/0016-banco-real-nos-testes-e-rls-sem-force.md)).
+Em produção, a API conecta sempre com um usuário membro do papel `app_api`, nunca com o dono do esquema, para que a RLS valha ([ADR 0016](docs/adr/0016-banco-real-nos-testes-e-rls-sem-force.md)). As variáveis estão em `apps/api/.env.example`.
 
 ## Como contribuímos
 
