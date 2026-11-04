@@ -23,7 +23,7 @@ export interface OpcoesCliente {
 
 export type ClienteApi = <T>(metodo: 'GET' | 'POST' | 'PUT' | 'DELETE', caminho: string, corpo?: unknown) => Promise<T>;
 
-const SEM_CONEXAO = 'Sem internet. Confira a conexão e tente de novo.';
+const SEM_CONEXAO = 'Não foi possível falar com o servidor. Confira a internet e tente de novo.';
 const FALHA_GENERICA = 'Algo deu errado do nosso lado. Tente de novo em instantes.';
 
 export function criarClienteApi(o: OpcoesCliente): ClienteApi {

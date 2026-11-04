@@ -3,6 +3,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { TemaProvider } from '../shared/tema/TemaProvider';
 import { criarClienteApi } from '../shared/api/cliente';
+import { API_URL } from '../shared/config';
 import { BoasVindasScreen } from '../features/boas-vindas/BoasVindasScreen';
 import { FluxoAcesso } from '../features/acesso/FluxoAcesso';
 import { apiAcesso } from '../features/acesso/api';
@@ -10,7 +11,6 @@ import type { ApiAcesso, Conta } from '../features/acesso/api';
 import { sessaoSegura } from '../features/acesso/sessao';
 import type { ArmazenamentoSessao } from '../features/acesso/sessao';
 
-const API_URL = process.env['EXPO_PUBLIC_API_URL'] ?? 'http://localhost:3333';
 
 type Estado = { tipo: 'carregando' } | { tipo: 'anonimo' } | { tipo: 'logado'; conta: Conta };
 
