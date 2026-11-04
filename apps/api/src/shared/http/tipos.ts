@@ -5,6 +5,8 @@ export interface Requisicao {
   readonly id: string;
   readonly metodo: Metodo;
   readonly caminho: string;
+  /** Valores dos trechos `:nome` da rota. */
+  readonly parametros: Readonly<Record<string, string>>;
   readonly consulta: URLSearchParams;
   readonly cabecalhos: Readonly<Record<string, string | undefined>>;
   readonly corpo: unknown;

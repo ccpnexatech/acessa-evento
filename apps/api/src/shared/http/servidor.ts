@@ -64,15 +64,18 @@ async function atender(req: IncomingMessage, res: ServerResponse, o: OpcoesServi
       const metodo = req.method as Metodo;
       if (!METODOS.has(metodo)) throw new ErroHttp(405, 'metodo_nao_permitido', 'Método não suportado.');
       const corpo = COM_CORPO.has(metodo) ? await lerJson(req, limite) : undefined;
+      const caminho = normalizar(url.pathname);
+      const rota = o.roteador.resolver(metodo, caminho);
       const requisicao: Requisicao = {
         id,
         metodo,
-        caminho: normalizar(url.pathname),
+        caminho,
+        parametros: rota.parametros,
         consulta: url.searchParams,
         cabecalhos: achatar(req.headers),
         corpo,
       };
-      resposta = await o.roteador.resolver(requisicao)(requisicao);
+      resposta = await rota.manipulador(requisicao);
     }
   } catch (erro) {
     resposta = problema(erro, id, o.logger);
