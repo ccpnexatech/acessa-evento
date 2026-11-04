@@ -10,3 +10,6 @@ export function normalizarUrlApi(valor: string | undefined): string {
 }
 
 export const API_URL = normalizarUrlApi(process.env.EXPO_PUBLIC_API_URL);
+
+/** Evento que o app abre (no MVP, um evento por build). */
+export const EVENTO_SLUG = (process.env.EXPO_PUBLIC_EVENTO ?? 'cocal-2026').trim();

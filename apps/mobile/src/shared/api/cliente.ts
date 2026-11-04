@@ -21,14 +21,27 @@ export interface OpcoesCliente {
   readonly tempoLimiteMs?: number;
 }
 
-export type ClienteApi = <T>(metodo: 'GET' | 'POST' | 'PUT' | 'DELETE', caminho: string, corpo?: unknown) => Promise<T>;
+type Metodo = 'GET' | 'POST' | 'PUT' | 'DELETE';
+
+export interface RespostaHttp<T> {
+  readonly status: number;
+  readonly dados: T | undefined;
+  readonly etag: string | null;
+}
+
+/** Acesso completo à resposta (status, ETag); 304 não é erro. */
+export type Requisitor = <T>(metodo: Metodo, caminho: string, opcoes?: { corpo?: unknown; cabecalhos?: Record<string, string> }) => Promise<RespostaHttp<T>>;
+
+/** Atalho para o caso comum: só os dados. */
+export type ClienteApi = <T>(metodo: Metodo, caminho: string, corpo?: unknown) => Promise<T>;
 
 const SEM_CONEXAO = 'Não foi possível falar com o servidor. Confira a internet e tente de novo.';
 const FALHA_GENERICA = 'Algo deu errado do nosso lado. Tente de novo em instantes.';
 
-export function criarClienteApi(o: OpcoesCliente): ClienteApi {
+export function criarRequisitor(o: OpcoesCliente): Requisitor {
   const chamar = o.fetch ?? fetch;
-  return async <T>(metodo: string, caminho: string, corpo?: unknown): Promise<T> => {
+  return async <T>(metodo: Metodo, caminho: string, opcoes: { corpo?: unknown; cabecalhos?: Record<string, string> } = {}) => {
+    const { corpo, cabecalhos = {} } = opcoes;
     const token = o.obterToken ? await o.obterToken() : null;
     const controle = new AbortController();
     const timer = setTimeout(() => controle.abort(), o.tempoLimiteMs ?? 15_000);
@@ -40,6 +53,7 @@ export function criarClienteApi(o: OpcoesCliente): ClienteApi {
           accept: 'application/json',
           ...(corpo !== undefined ? { 'content-type': 'application/json' } : {}),
           ...(token ? { authorization: `Bearer ${token}` } : {}),
+          ...cabecalhos,
         },
         ...(corpo !== undefined ? { body: JSON.stringify(corpo) } : {}),
         signal: controle.signal,
@@ -50,14 +64,14 @@ export function criarClienteApi(o: OpcoesCliente): ClienteApi {
       clearTimeout(timer);
     }
 
-    const texto = await resposta.text();
+    const texto = resposta.status === 304 ? '' : await resposta.text();
     let dados: unknown = undefined;
     try {
       dados = texto ? JSON.parse(texto) : undefined;
     } catch {
       dados = undefined;
     }
-    if (!resposta.ok) {
+    if (!resposta.ok && resposta.status !== 304) {
       const p = (dados ?? {}) as { codigo?: unknown; titulo?: unknown };
       throw new ErroApi(
         resposta.status,
@@ -65,6 +79,12 @@ export function criarClienteApi(o: OpcoesCliente): ClienteApi {
         typeof p.titulo === 'string' && resposta.status < 500 ? p.titulo : FALHA_GENERICA,
       );
     }
-    return dados as T;
+    return { status: resposta.status, dados: dados as T | undefined, etag: resposta.headers.get('etag') };
   };
+}
+
+export function criarClienteApi(o: OpcoesCliente): ClienteApi {
+  const requisitar = criarRequisitor(o);
+  return async <T>(metodo: Metodo, caminho: string, corpo?: unknown): Promise<T> =>
+    (await requisitar<T>(metodo, caminho, corpo === undefined ? {} : { corpo })).dados as T;
 }

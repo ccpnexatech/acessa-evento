@@ -1,4 +1,4 @@
-import { criarClienteApi, ErroApi } from './cliente';
+import { criarClienteApi, criarRequisitor, ErroApi } from './cliente';
 
 const resposta = (status: number, corpo?: unknown) =>
   new Response(corpo === undefined ? null : JSON.stringify(corpo), { status, headers: { 'content-type': 'application/json' } });
@@ -36,5 +36,21 @@ describe('criarClienteApi', () => {
     await expect(vazio('POST', '/sair')).resolves.toBeUndefined();
     const html = criarClienteApi({ baseUrl: '', fetch: (async () => new Response('<html>', { status: 502 })) as unknown as typeof fetch });
     await expect(html('GET', '/x')).rejects.toMatchObject({ status: 502, codigo: 'erro_desconhecido' });
+  });
+});
+
+describe('criarRequisitor', () => {
+  it('devolve status e ETag, trata 304 como sucesso sem corpo e envia cabeçalhos extras', async () => {
+    const chamadas: RequestInit[] = [];
+    const fetchFalso = (async (_u: string, init: RequestInit) => {
+      chamadas.push(init);
+      return chamadas.length === 1
+        ? new Response(JSON.stringify({ a: 1 }), { status: 200, headers: { etag: '"v1"' } })
+        : new Response(null, { status: 304, headers: { etag: '"v1"' } });
+    }) as unknown as typeof fetch;
+    const requisitar = criarRequisitor({ baseUrl: '', fetch: fetchFalso });
+    await expect(requisitar('GET', '/agenda')).resolves.toEqual({ status: 200, dados: { a: 1 }, etag: '"v1"' });
+    await expect(requisitar('GET', '/agenda', { cabecalhos: { 'if-none-match': '"v1"' } })).resolves.toEqual({ status: 304, dados: undefined, etag: '"v1"' });
+    expect(chamadas[1]?.headers).toMatchObject({ 'if-none-match': '"v1"' });
   });
 });
