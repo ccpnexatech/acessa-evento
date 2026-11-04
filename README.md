@@ -2,7 +2,7 @@
 
 App de eventos acessível: inscrição, agenda, ingresso que funciona sem internet, check-in por QR e um assistente guiado para tirar dúvidas. Evento de referência: Congresso COCAL 2026, no Centro de Eventos do Ceará, de 1 a 3 de julho de 2026.
 
-> Projeto de portfólio em construção. Fase atual: **4, agenda e palestra offline** (fases 1 a 3 concluídas). Veja o [plano de execução](#plano).
+> Projeto de portfólio em construção. Fase atual: **5, inscrição e pagamento simulado** (fases 1 a 4 concluídas). Veja o [plano de execução](#plano).
 
 ## O que tem aqui
 
@@ -69,6 +69,10 @@ Em produção, a API conecta sempre com um usuário membro do papel `app_api`, n
 | `PUT /conta/primeiro-acesso` | Nome do crachá e aceite dos termos |
 | `GET /conta/exportacao` | Baixa todos os dados da pessoa (LGPD) |
 | `DELETE /conta` | Exclui a conta |
+| `GET /eventos/:slug/agenda` | Agenda publicada, com `ETag` e `304` quando nada mudou |
+| `GET /eventos/:slug/favoritos` | Atividades favoritas da pessoa |
+| `PUT /favoritos/:atividadeId` | Marca como favorita (idempotente) |
+| `DELETE /favoritos/:atividadeId` | Desmarca (idempotente) |
 
 Erros seguem o formato Problem Details (RFC 9457) com um `codigo` estável e uma mensagem pronta para a pessoa.
 

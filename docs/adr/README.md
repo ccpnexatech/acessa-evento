@@ -19,3 +19,5 @@
 | 0015 | [Commits direto na master, protegidos por um portão de qualidade local e no CI](0015-fluxo-git-e-portao-de-qualidade.md) | Aceita |
 | 0016 | [Testes contra PostgreSQL real e RLS sem FORCE](0016-banco-real-nos-testes-e-rls-sem-force.md) | Aceita |
 | 0017 | [Autenticação própria: código por e-mail e sessão opaca](0017-autenticacao-propria-com-codigo-e-sessao-opaca.md) | Aceita |
+| 0018 | [Cache offline e fila de favoritos próprios, atrás de portas](0018-cache-offline-e-fila-de-favoritos-proprios.md) | Aceita |
+| 0019 | [Navegação com Expo Router](0019-expo-router.md) | Aceita |
