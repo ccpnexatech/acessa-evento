@@ -4,7 +4,7 @@ import type { AddressInfo } from 'node:net';
 import { LoggerJson } from '../shared/logger.ts';
 import { Banco } from '../shared/db/banco.ts';
 import { lerConfig } from './config.ts';
-import { criarApp, dependenciasConta, verificadoresPadrao } from './app.ts';
+import { criarApp, dependenciasConta, dependenciasProgramacao, verificadoresPadrao } from './app.ts';
 
 const logger = new LoggerJson((linha) => process.stdout.write(linha));
 
@@ -24,7 +24,7 @@ const servidor = criarApp({
   relogio: { agoraMs: () => Date.now() },
   versao: version ?? '0.0.0',
   verificadores: verificadoresPadrao(banco),
-  ...(banco && config.banco ? { conta: dependenciasConta(banco, config.banco, logger) } : {}),
+  ...(banco && config.banco ? { conta: dependenciasConta(banco, config.banco, logger), programacao: dependenciasProgramacao(banco) } : {}),
 });
 
 servidor.listen(config.porta, () => {

@@ -61,3 +61,16 @@ test('o verificador do banco usa o ping', async () => {
   assert.equal(await verificadorBanco({ ping: async () => undefined }).verificar(), 'ok');
   assert.deepEqual(verificadoresPadrao(undefined), []);
 });
+
+test('identificacao: sem cabeçalho é anônimo; token inválido vira 401', async () => {
+  const { identificacao } = await import('./app.ts');
+  const { contaEmMemoria } = await import('../../test/apoio/conta-em-memoria.ts');
+  const id = identificacao(contaEmMemoria());
+  const req = (authorization?: string) => ({
+    id: '1', metodo: 'GET' as const, caminho: '/', parametros: {}, consulta: new URLSearchParams(), corpo: undefined,
+    cabecalhos: authorization ? { authorization } : {},
+  });
+  assert.equal(await id.opcional(req()), null);
+  await assert.rejects(id.exigir(req('Bearer ' + 'x'.repeat(43))), (e: { status: number }) => e.status === 401);
+  await assert.rejects(id.opcional(req('Basic abc')), (e: { status: number }) => e.status === 401);
+});

@@ -17,6 +17,15 @@ import { registrarRotasConta } from '../modules/conta/adapters/http/rotas-conta.
 import { auditoriaPostgres, repositorioCodigos, repositorioPessoas, repositorioSessoes } from '../modules/conta/adapters/postgres/repositorios.ts';
 import { enviadorDesenvolvimento, enviadorResend } from '../modules/conta/adapters/email.ts';
 import { aleatorioSeguro } from '../modules/conta/adapters/aleatorio.ts';
+import { Autenticar } from '../modules/conta/application/acesso.ts';
+import { ProgramacaoServico } from '../modules/programacao/application/casos-de-uso.ts';
+import type { RepositorioProgramacao } from '../modules/programacao/application/casos-de-uso.ts';
+import { repositorioProgramacao } from '../modules/programacao/adapters/postgres/repositorio.ts';
+import { registrarRotasProgramacao } from '../modules/programacao/adapters/http/rotas-programacao.ts';
+import type { Identificacao } from '../modules/programacao/adapters/http/rotas-programacao.ts';
+import { ErroHttp } from '../shared/http/tipos.ts';
+import type { Requisicao } from '../shared/http/tipos.ts';
+import { ErroConta } from '../modules/conta/domain/regras.ts';
 import type { Config, ConfigBanco } from './config.ts';
 
 export interface Dependencias {
@@ -27,6 +36,29 @@ export interface Dependencias {
   readonly verificadores?: readonly VerificadorDependencia[];
   /** Módulo conta; ausente quando a API sobe sem banco. */
   readonly conta?: DependenciasConta;
+  /** Programação; exige o módulo conta para identificar a pessoa. */
+  readonly programacao?: RepositorioProgramacao;
+}
+
+/** Identifica a pessoa pelo token Bearer, usando o caso de uso do módulo conta. */
+export function identificacao(conta: DependenciasConta): Identificacao {
+  const autenticar = new Autenticar(conta);
+  const token = (req: Requisicao): string | undefined => {
+    const [tipo, valor] = (req.cabecalhos['authorization'] ?? '').split(' ');
+    return tipo?.toLowerCase() === 'bearer' ? valor : undefined;
+  };
+  const exigir = async (req: Requisicao) => {
+    try {
+      return { pessoaId: (await autenticar.executar(token(req))).pessoaId };
+    } catch (erro) {
+      if (erro instanceof ErroConta) throw new ErroHttp(401, erro.codigo, erro.message);
+      throw erro;
+    }
+  };
+  return {
+    exigir,
+    opcional: async (req) => (req.cabecalhos['authorization'] ? exigir(req) : null),
+  };
 }
 
 export function criarApp(d: Dependencias): Server {
@@ -37,6 +69,9 @@ export function criarApp(d: Dependencias): Server {
     new ConsultarSaude(d.verificadores ?? [], d.relogio, { versao: d.versao, iniciadoEmMs: d.relogio.agoraMs(), limiteMs: 2_000 }),
   );
   if (d.conta) registrarRotasConta(roteador, d.conta);
+  if (d.conta && d.programacao) {
+    registrarRotasProgramacao(roteador, new ProgramacaoServico(d.programacao), identificacao(d.conta));
+  }
 
   return criarServidor({
     roteador,
@@ -61,5 +96,7 @@ export function dependenciasConta(banco: Banco, config: ConfigBanco, logger: Log
     relogio: { agora: () => new Date() },
   };
 }
+
+export const dependenciasProgramacao = (banco: Banco): RepositorioProgramacao => repositorioProgramacao(banco);
 
 export const verificadoresPadrao = (banco: Banco | undefined): VerificadorDependencia[] => (banco ? [verificadorBanco(banco)] : []);
