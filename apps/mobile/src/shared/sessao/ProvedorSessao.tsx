@@ -93,6 +93,10 @@ export function ProvedorSessao({ children, api: apiInjetada, requisitar: reqInje
     await cofre.apagar(CHAVE_CONTA);
     await cofre.apagar(`favoritos-${EVENTO_SLUG}`);
     await cofre.apagar('ingressos');
+    // A lista da equipe tem nomes e pedidos de acessibilidade: não fica no aparelho depois de sair.
+    for (const chave of ['equipe-eventos', 'credenciamento-portao', `credenciamento-${EVENTO_SLUG}-pacote`, `credenciamento-${EVENTO_SLUG}-fila`]) {
+      await cofre.apagar(chave);
+    }
     setEstado({ tipo: 'anonimo' });
   }, [api, sessao, cofre]);
 

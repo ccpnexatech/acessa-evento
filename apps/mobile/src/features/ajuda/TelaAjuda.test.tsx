@@ -18,4 +18,13 @@ describe('TelaAjuda', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Sair' }));
     expect(onSair).toHaveBeenCalled();
   });
+
+  it('Credenciamento só aparece para a equipe', async () => {
+    const onCredenciamento = jest.fn();
+    await render(<TemaProvider><TelaAjuda nome="Ana" onSair={jest.fn()} /></TemaProvider>);
+    expect(screen.queryByRole('button', { name: 'Credenciamento' })).toBeNull();
+    await render(<TemaProvider><TelaAjuda nome="Ana" onSair={jest.fn()} onCredenciamento={onCredenciamento} /></TemaProvider>);
+    await fireEvent.press(screen.getByRole('button', { name: 'Credenciamento' }));
+    expect(onCredenciamento).toHaveBeenCalled();
+  });
 });
