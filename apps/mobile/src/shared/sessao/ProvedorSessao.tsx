@@ -2,7 +2,7 @@
  * Quem está usando o app e com quais serviços (API, armazenamento).
  * As rotas leem daqui; testes injetam versões falsas pelas props.
  */
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { criarClienteApi, criarRequisitor, ErroApi } from '../api/cliente';
 import type { Requisitor } from '../api/cliente';
@@ -24,6 +24,9 @@ export interface ValorSessao {
   readonly cofre: Cofre;
   readonly entrou: (conta: Conta) => void;
   readonly sair: () => Promise<void>;
+  /** Para onde voltar depois de entrar (ex.: a inscrição que pediu login). */
+  readonly lembrarDestino: (rota: string | null) => void;
+  readonly consumirDestino: () => string | null;
 }
 
 const CHAVE_CONTA = 'conta';
@@ -41,6 +44,15 @@ export function ProvedorSessao({ children, api: apiInjetada, requisitar: reqInje
   const requisitar = useMemo(() => reqInjetado ?? criarRequisitor({ baseUrl: API_URL, obterToken: () => sessao.ler() }), [reqInjetado, sessao]);
   const api = useMemo(() => apiInjetada ?? apiAcesso(criarClienteApi({ baseUrl: API_URL, obterToken: () => sessao.ler() })), [apiInjetada, sessao]);
   const [estado, setEstado] = useState<EstadoSessao>({ tipo: 'carregando' });
+  const destino = useRef<string | null>(null);
+  const lembrarDestino = useCallback((rota: string | null) => {
+    destino.current = rota;
+  }, []);
+  const consumirDestino = useCallback(() => {
+    const d = destino.current;
+    destino.current = null;
+    return d;
+  }, []);
 
   useEffect(() => {
     let vivo = true;
@@ -80,10 +92,14 @@ export function ProvedorSessao({ children, api: apiInjetada, requisitar: reqInje
     await sessao.apagar();
     await cofre.apagar(CHAVE_CONTA);
     await cofre.apagar(`favoritos-${EVENTO_SLUG}`);
+    await cofre.apagar('ingressos');
     setEstado({ tipo: 'anonimo' });
   }, [api, sessao, cofre]);
 
-  const valor = useMemo(() => ({ estado, api, requisitar, sessao, cofre, entrou, sair }), [estado, api, requisitar, sessao, cofre, entrou, sair]);
+  const valor = useMemo(
+    () => ({ estado, api, requisitar, sessao, cofre, entrou, sair, lembrarDestino, consumirDestino }),
+    [estado, api, requisitar, sessao, cofre, entrou, sair, lembrarDestino, consumirDestino],
+  );
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }
 

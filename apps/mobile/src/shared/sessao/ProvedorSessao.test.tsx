@@ -61,3 +61,18 @@ describe('ProvedorSessao', () => {
     expect(cofre.conteudo.size).toBe(0);
   });
 });
+
+describe('destino depois de entrar', () => {
+  it('guarda uma vez e entrega uma vez', async () => {
+    const valores: ReturnType<typeof useSessao>[] = [];
+    function Pega() {
+      valores.push(useSessao());
+      return null;
+    }
+    await render(<ProvedorSessao api={api(async () => conta)} requisitar={requisitar} sessao={sessaoEmMemoria(null)} cofre={cofreEmMemoria()}><Pega /></ProvedorSessao>);
+    const s = valores.at(-1);
+    s?.lembrarDestino('/inscricao/cocal-2026');
+    expect(s?.consumirDestino()).toBe('/inscricao/cocal-2026');
+    expect(s?.consumirDestino()).toBeNull();
+  });
+});

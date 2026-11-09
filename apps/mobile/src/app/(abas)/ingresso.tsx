@@ -1,9 +1,7 @@
-import { Paragrafo, Tela } from '../../shared/ui/componentes';
+import { useRouter } from 'expo-router';
+import { TelaIngressos } from '../../features/inscricao/TelaIngressos';
 
 export default function Ingresso() {
-  return (
-    <Tela titulo="Ingresso">
-      <Paragrafo>Seu QR de entrada chega na próxima fase e vai funcionar sem internet.</Paragrafo>
-    </Tela>
-  );
+  const router = useRouter();
+  return <TelaIngressos onVerEventos={() => router.push('/eventos')} />;
 }
