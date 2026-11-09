@@ -15,15 +15,17 @@ interface Props {
   readonly api: ApiAcesso;
   readonly sessao: ArmazenamentoSessao;
   readonly onPronto: (conta: Conta) => void;
+  readonly onExplorar?: () => void;
 }
 
-export function FluxoAcesso({ api, sessao, onPronto }: Props) {
+export function FluxoAcesso({ api, sessao, onPronto, onExplorar }: Props) {
   const [passo, setPasso] = useState<Passo>({ tipo: 'entrar' });
 
   switch (passo.tipo) {
     case 'entrar':
       return (
         <TelaEntrar
+          {...(onExplorar ? { onExplorar } : {})}
           onPedirCodigo={async (email) => {
             await api.pedirCodigo(email);
             setPasso({ tipo: 'codigo', email });

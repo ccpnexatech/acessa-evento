@@ -9,7 +9,7 @@ import { ErroApi } from '../../shared/api/cliente';
 const mensagem = (e: unknown): string => (e instanceof ErroApi ? e.message : 'Algo deu errado. Tente de novo.');
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@.]{2,}$/;
 
-export function TelaEntrar({ onPedirCodigo }: { onPedirCodigo: (email: string) => Promise<void> }) {
+export function TelaEntrar({ onPedirCodigo, onExplorar }: { onPedirCodigo: (email: string) => Promise<void>; onExplorar?: () => void }) {
   const [email, setEmail] = useState('');
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -52,6 +52,7 @@ export function TelaEntrar({ onPedirCodigo }: { onPedirCodigo: (email: string) =
         placeholder="voce@exemplo.com.br"
       />
       <Paragrafo secundario>Primeira vez aqui? É o mesmo caminho: o código cria a sua conta.</Paragrafo>
+      {onExplorar ? <Botao variante="texto" rotulo="Ver eventos sem entrar" onPress={onExplorar} /> : null}
     </Tela>
   );
 }
