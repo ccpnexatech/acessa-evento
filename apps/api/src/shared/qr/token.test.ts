@@ -8,13 +8,14 @@ import { deBase64url, emitirToken, lerToken, paraBase64url, validadeDoEvento } f
  * Se o formato mudar de um lado só, um dos dois testes quebra.
  */
 const VETOR = {
-  privada: 'MC4CAQAwBQYDK2VwBCIEIBERERERERERERERERERERERERERERERERERERERERER',
+  // Chave só de teste, pública de propósito (32 bytes 0x11). segredo-permitido
+  privada: 'MC4CAQAwBQYDK2VwBCIEIBERERERERERERERERERERERERERERERERERERERERER', // segredo-permitido
   kid: 'teste-1',
   ingresso: '01900000-0000-7000-8000-000000000001',
   evento: '01900000-0000-7000-8000-0000000000e1',
   validade: 1_783_123_200,
-  publica: '0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzc',
-  token: 'AE1.eyJrIjoidGVzdGUtMSIsImkiOiIwMTkwMDAwMC0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEiLCJlIjoiMDE5MDAwMDAtMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMGUxIiwieCI6MTc4MzEyMzIwMH0.erD5Zz3BC57MheA5-0CHH8a5CpnKv8DAlyLbBOmLGtqfmURvTnLs6uBTHT8Fb1ld73cw3vGftSMpkhdX37saCg',
+  publica: '0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzc', // segredo-permitido: vetor público de teste
+  token: 'AE1.eyJrIjoidGVzdGUtMSIsImkiOiIwMTkwMDAwMC0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMDEiLCJlIjoiMDE5MDAwMDAtMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMGUxIiwieCI6MTc4MzEyMzIwMH0.erD5Zz3BC57MheA5-0CHH8a5CpnKv8DAlyLbBOmLGtqfmURvTnLs6uBTHT8Fb1ld73cw3vGftSMpkhdX37saCg', // segredo-permitido: vetor público de teste
 };
 
 const assinador = assinadorEd25519(VETOR.kid, chavePrivadaDeBase64(VETOR.privada));
