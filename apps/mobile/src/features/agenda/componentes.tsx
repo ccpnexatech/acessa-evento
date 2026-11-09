@@ -2,7 +2,8 @@
  * Peças da agenda, seguindo o design system: aviso de conexão, abas de dia,
  * chips de filtro, selos de acessibilidade e cartão da atividade.
  */
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { AccessibilityInfo, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { espaco, raio, tamanho } from '@acessa-evento/tokens';
 import { useTema } from '../../shared/tema/TemaProvider';
 import { NOME_RECURSO, hora } from './modelo';
@@ -11,14 +12,19 @@ import type { Conexao } from './ProvedorAgenda';
 
 export function AvisoConexao({ conexao, pendentes, salvaHaTempo }: { conexao: Conexao; pendentes: number; salvaHaTempo: boolean }) {
   const { cores } = useTema();
-  if (conexao === 'online') return null;
-  const texto = conexao === 'sincronizando'
+  const texto = conexao === 'online' ? null : conexao === 'sincronizando'
     ? 'Atualizando a agenda.'
     : pendentes
       ? `Sem internet. ${pendentes === 1 ? '1 favorito será enviado' : `${pendentes} favoritos serão enviados`} quando a conexão voltar.`
       : salvaHaTempo
         ? 'Sem internet. Você está vendo a última agenda salva.'
         : 'Sem internet. Seu ingresso e a agenda continuam disponíveis.';
+  // O Android anuncia sozinho pela região viva; o iOS precisa do anúncio explícito.
+  // "Atualizando" não é anunciado, para não falar a cada sincronização.
+  useEffect(() => {
+    if (texto && conexao === 'offline' && Platform.OS === 'ios') AccessibilityInfo.announceForAccessibility(texto);
+  }, [texto, conexao]);
+  if (!texto) return null;
   const fundo = conexao === 'sincronizando' ? cores.primary050 : cores.warning100;
   const cor = conexao === 'sincronizando' ? cores.primary700 : cores.warning700;
   return (
