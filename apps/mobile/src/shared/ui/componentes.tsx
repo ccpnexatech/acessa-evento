@@ -110,7 +110,7 @@ export function CampoTexto({ rotulo, dica, erro, grande = false, ...resto }: Pro
   );
 }
 
-export function CaixaMarcar({ rotulo, marcado, onMudar, erro }: { rotulo: string; marcado: boolean; onMudar: (v: boolean) => void; erro?: string | null }) {
+export function CaixaMarcar({ rotulo, dica, marcado, onMudar, erro }: { rotulo: string; dica?: string; marcado: boolean; onMudar: (v: boolean) => void; erro?: string | null }) {
   const { cores } = useTema();
   return (
     <View>
@@ -118,6 +118,7 @@ export function CaixaMarcar({ rotulo, marcado, onMudar, erro }: { rotulo: string
         accessibilityRole="checkbox"
         accessibilityState={{ checked: marcado }}
         accessibilityLabel={rotulo}
+        {...(dica ? { accessibilityHint: dica } : {})}
         onPress={() => onMudar(!marcado)}
         style={estilos.marcar}
       >
@@ -129,14 +130,68 @@ export function CaixaMarcar({ rotulo, marcado, onMudar, erro }: { rotulo: string
         >
           {marcado ? <Text style={{ color: cores.onPrimary, fontWeight: '700' }}>✓</Text> : null}
         </View>
-        <Text style={[estilos.paragrafo, { color: cores.ink900, flex: 1 }]}>{rotulo}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={[estilos.paragrafo, { color: cores.ink900 }]}>{rotulo}</Text>
+          {dica ? <Text style={[estilos.dicaOpcao, { color: cores.ink600 }]}>{dica}</Text> : null}
+        </View>
       </Pressable>
       <MensagemErro texto={erro ?? null} />
     </View>
   );
 }
 
+interface PropsOpcao {
+  readonly rotulo: string;
+  readonly dica?: string | null;
+  /** Texto à direita, como o preço. */
+  readonly valor?: string;
+  readonly marcado: boolean;
+  readonly desabilitado?: boolean;
+  /** Motivo de estar desabilitado, dito em voz e escrito na tela ("Esgotado"). */
+  readonly motivo?: string;
+  readonly onPress: () => void;
+}
+
+/** Uma opção de escolha única (role radio). Desabilitada aparece riscada e com o motivo escrito. */
+export function OpcaoRadio({ rotulo, dica, valor, marcado, desabilitado = false, motivo, onPress }: PropsOpcao) {
+  const { cores } = useTema();
+  const cor = desabilitado ? cores.ink600 : cores.ink900;
+  const nome = [rotulo, valor, desabilitado && motivo ? motivo : null].filter(Boolean).join(', ');
+  return (
+    <Pressable
+      accessibilityRole="radio"
+      accessibilityState={{ checked: marcado, disabled: desabilitado }}
+      accessibilityLabel={nome}
+      {...(dica ? { accessibilityHint: dica } : {})}
+      disabled={desabilitado}
+      onPress={onPress}
+      style={[
+        estilos.opcao,
+        {
+          borderColor: marcado ? cores.primary600 : cores.borderControl,
+          backgroundColor: desabilitado ? cores.surface200 : marcado ? cores.primary050 : cores.surface000,
+        },
+      ]}
+    >
+      <View style={[estilos.bolinha, { borderColor: marcado ? cores.primary600 : cores.borderControl }]}>
+        {marcado ? <View style={[estilos.miolo, { backgroundColor: cores.primary600 }]} /> : null}
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={[estilos.opcaoRotulo, { color: cor, textDecorationLine: desabilitado ? 'line-through' : 'none' }]}>{rotulo}</Text>
+        {dica ? <Text style={[estilos.dicaOpcao, { color: cores.ink600 }]}>{dica}</Text> : null}
+        {desabilitado && motivo ? <Text style={[estilos.opcaoRotulo, { color: cores.ink900 }]}>{motivo}</Text> : null}
+      </View>
+      {valor ? <Text style={[estilos.opcaoRotulo, { color: cor, textDecorationLine: desabilitado ? 'line-through' : 'none' }]}>{valor}</Text> : null}
+    </Pressable>
+  );
+}
+
 const estilos = StyleSheet.create({
+  opcao: { flexDirection: 'row', alignItems: 'center', gap: espaco['3'], minHeight: tamanho.touchLg, padding: espaco['3'], borderWidth: 2, borderRadius: raio.md },
+  bolinha: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  miolo: { width: 12, height: 12, borderRadius: 6 },
+  opcaoRotulo: { fontSize: 18, lineHeight: 26, fontWeight: '700' },
+  dicaOpcao: { fontSize: 16, lineHeight: 24 },
   tela: { flex: 1 },
   conteudo: { padding: espaco['4'], paddingTop: espaco['12'], gap: espaco['4'] },
   titulo: { fontSize: 28, lineHeight: 36, fontWeight: '600' },
