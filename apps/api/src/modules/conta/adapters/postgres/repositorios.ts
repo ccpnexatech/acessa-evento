@@ -68,6 +68,17 @@ export function repositorioPessoas(banco: Banco): RepositorioPessoas {
           'select criada_em as "criadaEm", ultimo_uso_em as "ultimoUsoEm", expira_em as "expiraEm", revogada_em as "revogadaEm" from sessao where pessoa_id = $1 order by criada_em', [id]),
         organizacao: await tx.consultar(
           'select e.nome as evento, m.papel, m.criado_em as "desde" from membro_organizacao m join evento e on e.id = m.evento_id where m.pessoa_id = $1', [id]),
+        pedidos: await tx.consultar(
+          `select e.nome as evento, t.nome as ingresso, p.valor_centavos as "valorCentavos", p.metodo, p.status,
+                  p.cartao_final as "cartaoFinal", p.criado_em as "criadoEm"
+           from pedido p join evento e on e.id = p.evento_id join tipo_ingresso t on t.id = p.tipo_ingresso_id
+           where p.pessoa_id = $1 order by p.criado_em`, [id]),
+        ingressos: await tx.consultar(
+          'select e.nome as evento, i.emitido_em as "emitidoEm", i.cancelado_em as "canceladoEm" from ingresso i join evento e on e.id = i.evento_id where i.pessoa_id = $1', [id]),
+        acessibilidade: await tx.consultar(
+          'select e.nome as evento, a.recursos, a.apagar_apos as "apagarApos" from pedido_acessibilidade a join evento e on e.id = a.evento_id where a.pessoa_id = $1', [id]),
+        favoritos: await tx.consultar(
+          'select a.titulo from favorito f join atividade a on a.id = f.atividade_id where f.pessoa_id = $1', [id]),
       }));
     },
     async excluir(id) {
