@@ -14,7 +14,8 @@
     "test": "node --test --test-timeout=30000 --experimental-test-coverage --test-coverage-include=\"src/**\" --test-coverage-exclude=\"src/**/*.test.ts\" --test-coverage-exclude=\"src/main/server.ts\" --test-coverage-exclude=\"src/main/migrar.ts\" --test-coverage-exclude=\"src/main/semear.ts\" --test-coverage-exclude=\"src/shared/db/**\" --test-coverage-exclude=\"src/**/adapters/postgres/**\" --test-coverage-lines=90 --test-coverage-branches=85 \"src/**/*.test.ts\"",
     "e2e": "node ../../scripts/banco-teste.ts node --test --test-concurrency=4 --test-timeout=60000 \"test/**/*.e2e.ts\" \"test/**/*.int.ts\"",
     "migrar": "node src/main/migrar.ts",
-    "semear": "node src/main/semear.ts"
+    "semear": "node src/main/semear.ts",
+    "papel": "node src/main/papel.ts"
   },
   "dependencies": {
     "pg": "8.23.1"

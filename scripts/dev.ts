@@ -6,6 +6,8 @@
  *   --lan      sem túnel: usa o IP da rede local (mais rápido, exige rede sem isolamento)
  *   --sem-app  só banco, API e link público da API (para testar com curl ou Bruno)
  *   --resetar  apaga o banco e as chaves de desenvolvimento antes de subir
+ *   --equipe <email>  dá ao e-mail o papel de credenciamento no COCAL 2026
+ *                     (abre o leitor de QR no app; a conta é criada se não existir)
  *
  * Tudo o que é gerado fica em .dev/ (fora do git): chaves, senha do usuário
  * da API, dados do banco local e o binário do cloudflared.
@@ -15,7 +17,7 @@ import type { ChildProcess } from 'node:child_process';
 import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { arch, networkInterfaces, platform, tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { randomBytes } from 'node:crypto';
+import { generateKeyPairSync, randomBytes } from 'node:crypto';
 import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
@@ -27,7 +29,9 @@ const API = join(RAIZ, 'apps', 'api');
 const MOBILE = join(RAIZ, 'apps', 'mobile');
 const PORTA_PG = 54329;
 const CONTEINER = 'acessa-evento-dev-pg';
-const opcoes = new Set(process.argv.slice(2));
+const argumentos = process.argv.slice(2);
+const opcoes = new Set(argumentos);
+const emailEquipe = argumentos[argumentos.indexOf('--equipe') + 1];
 
 const filhos: ChildProcess[] = [];
 let pararBanco: () => void = () => undefined;
@@ -64,15 +68,27 @@ interface Segredos {
   readonly senhaApi: string;
   readonly chavesCifra: string;
   readonly chaveIndice: string;
+  /** Ed25519 que assina o QR; persistente para os ingressos continuarem valendo entre execuções. */
+  readonly qrChavePrivada: string;
 }
+
+const novaChaveQr = (): string => generateKeyPairSync('ed25519').privateKey.export({ format: 'der', type: 'pkcs8' }).toString('base64');
 
 function segredos(): Segredos {
   const arquivo = join(DEV, 'segredos.json');
-  if (existsSync(arquivo)) return JSON.parse(readFileSync(arquivo, 'utf8')) as Segredos;
+  if (existsSync(arquivo)) {
+    const salvos = JSON.parse(readFileSync(arquivo, 'utf8')) as Partial<Segredos> & Omit<Segredos, 'qrChavePrivada'>;
+    if (salvos.qrChavePrivada) return salvos as Segredos;
+    // Segredos de antes da fase 6: acrescenta a chave do QR sem trocar as outras.
+    const completos = { ...salvos, qrChavePrivada: novaChaveQr() };
+    writeFileSync(arquivo, JSON.stringify(completos, null, 2), { mode: 0o600 });
+    return completos;
+  }
   const novos: Segredos = {
     senhaApi: randomBytes(18).toString('base64url'),
     chavesCifra: `1:${randomBytes(32).toString('base64')}`,
     chaveIndice: randomBytes(32).toString('base64'),
+    qrChavePrivada: novaChaveQr(),
   };
   writeFileSync(arquivo, JSON.stringify(novos, null, 2), { mode: 0o600 });
   return novos;
@@ -161,6 +177,16 @@ async function prepararBanco(urlDono: string, s: Segredos): Promise<string> {
     await cliente.end();
   }
   ok('Migrações aplicadas, evento COCAL 2026 criado e usuário da API pronto');
+  if (emailEquipe && !emailEquipe.startsWith('--')) {
+    const r = spawnSync(process.execPath, ['src/main/papel.ts', emailEquipe, 'credenciamento', 'cocal-2026'], {
+      cwd: API, encoding: 'utf8',
+      env: { ...process.env, DATABASE_URL_MIGRACAO: urlDono, CHAVES_CIFRA: s.chavesCifra, CHAVE_INDICE: s.chaveIndice },
+    });
+    if (r.status !== 0) falhar(`Não consegui dar o papel de equipe: ${r.stderr.trim()}`);
+    ok(r.stdout.trim());
+  } else if (opcoes.has('--equipe')) {
+    falhar('Use --equipe seguido do e-mail, por exemplo: npm run dev -- --equipe voce@exemplo.com.br');
+  }
   return urlDono.replace(/^postgres:\/\/[^@]+@/, `postgres://acessa_api:${encodeURIComponent(s.senhaApi)}@`);
 }
 
@@ -171,7 +197,8 @@ async function subirApi(urlApi: string, s: Segredos): Promise<number> {
   const api = spawn(process.execPath, ['src/main/server.ts'], {
     cwd: API,
     env: { ...process.env, PORTA: String(porta), AMBIENTE: 'desenvolvimento', DATABASE_URL: urlApi,
-      CHAVES_CIFRA: s.chavesCifra, CHAVE_INDICE: s.chaveIndice, EMAIL_PROVEDOR: 'dev' },
+      CHAVES_CIFRA: s.chavesCifra, CHAVE_INDICE: s.chaveIndice, EMAIL_PROVEDOR: 'dev',
+      QR_CHAVE_PRIVADA: s.qrChavePrivada, QR_CHAVE_ID: 'dev-1' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   filhos.push(api);
