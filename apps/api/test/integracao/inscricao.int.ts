@@ -11,6 +11,7 @@ import { Banco } from '../../src/shared/db/banco.ts';
 import { semear } from '../../src/shared/db/semeador.ts';
 import { loggerSilencioso } from '../../src/shared/logger.ts';
 import { criarApp, dependenciasConta, dependenciasInscricao } from '../../src/main/app.ts';
+import { assinadorEd25519, novaChavePrivada } from '../../src/shared/qr/ed25519.ts';
 
 let b: BancoDeTeste;
 let banco: Banco;
@@ -29,7 +30,7 @@ before(async () => {
     ...dependenciasConta(banco, configBanco, loggerSilencioso),
     email: { enviarCodigo: async (email: string, codigo: string) => { caixa.push({ email, codigo }); } },
   };
-  const inscricao = dependenciasInscricao(banco, conta, configBanco, loggerSilencioso);
+  const inscricao = dependenciasInscricao(banco, conta, configBanco, loggerSilencioso, assinadorEd25519('t', novaChavePrivada()));
   app = criarApp({
     config: { porta: 0, ambiente: 'teste', corsOrigens: [] },
     logger: loggerSilencioso,

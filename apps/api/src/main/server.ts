@@ -5,7 +5,7 @@ import { LoggerJson } from '../shared/logger.ts';
 import { Banco } from '../shared/db/banco.ts';
 import { lerConfig } from './config.ts';
 import type { ConfigBanco } from './config.ts';
-import { criarApp, dependenciasConta, dependenciasInscricao, dependenciasProgramacao, verificadoresPadrao } from './app.ts';
+import { assinadorQr, criarApp, dependenciasConta, dependenciasCredenciamento, dependenciasInscricao, dependenciasProgramacao, verificadoresPadrao } from './app.ts';
 
 const logger = new LoggerJson((linha) => process.stdout.write(linha));
 
@@ -30,7 +30,13 @@ const servidor = criarApp({
 
 function modulos(b: Banco, c: ConfigBanco) {
   const conta = dependenciasConta(b, c, logger);
-  return { conta, programacao: dependenciasProgramacao(b), inscricao: dependenciasInscricao(b, conta, c, logger) };
+  const assinador = assinadorQr(c, logger);
+  return {
+    conta,
+    programacao: dependenciasProgramacao(b),
+    inscricao: dependenciasInscricao(b, conta, c, logger, assinador),
+    credenciamento: dependenciasCredenciamento(b, conta, assinador),
+  };
 }
 
 servidor.listen(config.porta, () => {

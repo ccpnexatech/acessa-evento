@@ -24,6 +24,12 @@ import { repositorioInscricao } from '../modules/inscricao/adapters/postgres/rep
 import { registrarRotasInscricao } from '../modules/inscricao/adapters/http/rotas-inscricao.ts';
 import { pagamentoSimulado } from '../modules/inscricao/adapters/pagamento-simulado.ts';
 import { notificadorPorEmail } from '../modules/inscricao/adapters/recibo.ts';
+import { CredenciamentoServico } from '../modules/credenciamento/application/casos-de-uso.ts';
+import type { DependenciasCredenciamento } from '../modules/credenciamento/application/casos-de-uso.ts';
+import { repositorioCredenciamento } from '../modules/credenciamento/adapters/postgres/repositorio.ts';
+import { registrarRotasCredenciamento } from '../modules/credenciamento/adapters/http/rotas-credenciamento.ts';
+import { assinadorEd25519, novaChavePrivada } from '../shared/qr/ed25519.ts';
+import type { Assinador } from '../shared/qr/token.ts';
 import { ProgramacaoServico } from '../modules/programacao/application/casos-de-uso.ts';
 import type { RepositorioProgramacao } from '../modules/programacao/application/casos-de-uso.ts';
 import { repositorioProgramacao } from '../modules/programacao/adapters/postgres/repositorio.ts';
@@ -46,6 +52,8 @@ export interface Dependencias {
   readonly programacao?: RepositorioProgramacao;
   /** Inscrição e pagamento; também exige o módulo conta. */
   readonly inscricao?: DependenciasInscricao;
+  /** Credenciamento da equipe; também exige o módulo conta. */
+  readonly credenciamento?: DependenciasCredenciamento;
 }
 
 /** Identifica a pessoa pelo token Bearer, usando o caso de uso do módulo conta. */
@@ -83,6 +91,9 @@ export function criarApp(d: Dependencias): Server {
   if (d.conta && d.inscricao) {
     registrarRotasInscricao(roteador, new InscricaoServico(d.inscricao), identificacao(d.conta));
   }
+  if (d.conta && d.credenciamento) {
+    registrarRotasCredenciamento(roteador, new CredenciamentoServico(d.credenciamento), identificacao(d.conta));
+  }
 
   return criarServidor({
     roteador,
@@ -109,9 +120,10 @@ export function dependenciasConta(banco: Banco, config: ConfigBanco, logger: Log
 }
 
 /** Inscrição com o pagamento simulado do MVP (ADR 0007) e recibo pelo mesmo canal de e-mail da conta. */
-export function dependenciasInscricao(banco: Banco, conta: DependenciasConta, config: ConfigBanco, logger: Logger): DependenciasInscricao {
+export function dependenciasInscricao(banco: Banco, conta: DependenciasConta, config: ConfigBanco, logger: Logger, assinador: Assinador): DependenciasInscricao {
   const email = config.email;
   return {
+    assinador,
     repositorio: repositorioInscricao(banco),
     pagamento: pagamentoSimulado(),
     auditoria: conta.auditoria,
@@ -124,6 +136,25 @@ export function dependenciasInscricao(banco: Banco, conta: DependenciasConta, co
         ? (para, assunto, texto) => enviarPelaResend({ chave: email.chave, remetente: email.remetente }, para, assunto, texto)
         : async (_para, assunto) => logger.log('info', 'email_dev', { assunto }),
     }),
+  };
+}
+
+/**
+ * Assinador do QR. Sem chave configurada (só fora de produção, ver config.ts),
+ * gera uma temporária: os QRs emitidos deixam de valer quando a API reinicia.
+ */
+export function assinadorQr(config: ConfigBanco, logger: Logger): Assinador {
+  if (config.qr) return assinadorEd25519(config.qr.kid, config.qr.privada);
+  logger.log('warn', 'qr_chave_temporaria', { motivo: 'QR_CHAVE_PRIVADA ausente; QRs valem até a API reiniciar' });
+  return assinadorEd25519('temporaria', novaChavePrivada());
+}
+
+export function dependenciasCredenciamento(banco: Banco, conta: DependenciasConta, assinador: Assinador): DependenciasCredenciamento {
+  return {
+    repositorio: repositorioCredenciamento(banco),
+    auditoria: conta.auditoria,
+    chaves: [{ kid: assinador.kid, publica: assinador.chavePublica }],
+    agoraMs: () => Date.now(),
   };
 }
 
