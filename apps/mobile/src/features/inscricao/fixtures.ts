@@ -15,7 +15,7 @@ export const EVENTO: DetalheEvento = {
 };
 
 export const INGRESSO: Ingresso = {
-  id: 'i1', tipo: 'Congressista', emitidoEm: '2026-11-09T12:00:00Z',
+  id: 'i1', tipo: 'Congressista', nome: 'Caio Ponte', emitidoEm: '2026-11-09T12:00:00Z', qr: 'AE1.conteudo.assinatura', checkin: null,
   evento: { slug: 'cocal-2026', nome: 'COCAL 2026', inicio: '2026-07-01', fim: '2026-07-03', local: 'Centro de Eventos do Ceará' },
 };
 

@@ -1,4 +1,5 @@
 /** Cenários de 03-agenda-offline.feature na interface, buscando por papel e nome. */
+import { Text } from 'react-native';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { TemaProvider } from '../../shared/tema/TemaProvider';
 import { ErroApi } from '../../shared/api/cliente';
@@ -49,6 +50,11 @@ describe('TelaAgenda', () => {
     expect(await screen.findByRole('header', { name: 'Agora · 1 sessão' })).toBeTruthy();
     expect(screen.getByRole('header', { name: 'A seguir · 1 sessão' })).toBeTruthy();
     expect(screen.getByRole('tab', { name: /1 de julho/i, selected: true })).toBeTruthy();
+  });
+
+  it('mostra o que vier no topo, como o atalho do ingresso', async () => {
+    await montar(<TelaAgenda onAbrir={jest.fn()} agora={agora} topo={<Text>Seu ingresso</Text>} />);
+    expect(await screen.findByText('Seu ingresso')).toBeTruthy();
   });
 
   it('troca de dia pelas abas', async () => {

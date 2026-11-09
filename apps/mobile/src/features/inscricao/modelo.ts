@@ -50,7 +50,13 @@ export interface Ingresso {
   readonly id: string;
   readonly evento: { readonly slug: string; readonly nome: string; readonly inicio: string; readonly fim: string; readonly local: string };
   readonly tipo: string;
+  /** Nome do crachá; null enquanto o primeiro acesso não foi concluído. */
+  readonly nome: string | null;
   readonly emitidoEm: string;
+  /** Token assinado (ADR 0006): o QR vale sem internet. */
+  readonly qr: string;
+  /** Primeiro check-in, quando já entrou. */
+  readonly checkin: { readonly em: string; readonly portao: string } | null;
 }
 
 export const reais = (centavos: number): string =>

@@ -3,6 +3,7 @@
  * para serem testadas sem o roteador.
  */
 import { useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { espaco, raio, tamanho } from '@acessa-evento/tokens';
 import { useTema } from '../../shared/tema/TemaProvider';
@@ -17,9 +18,11 @@ const RECURSOS: readonly Recurso[] = ['libras', 'legenda', 'audiodescricao'];
 interface PropsAgenda {
   readonly onAbrir: (atividadeId: string) => void;
   readonly agora?: () => Date;
+  /** Conteúdo acima dos filtros, como o atalho do ingresso. */
+  readonly topo?: ReactNode;
 }
 
-export function TelaAgenda({ onAbrir, agora = () => new Date() }: PropsAgenda) {
+export function TelaAgenda({ onAbrir, agora = () => new Date(), topo }: PropsAgenda) {
   const { cores } = useTema();
   const { agenda, carregando, conexao, erro, favoritas, pendentes, alternarFavorita, atualizar } = useAgenda();
   const fuso = agenda?.evento.fuso ?? 'America/Fortaleza';
@@ -62,6 +65,7 @@ export function TelaAgenda({ onAbrir, agora = () => new Date() }: PropsAgenda) {
     <ScrollView style={{ backgroundColor: cores.surface000 }} contentContainerStyle={estilos.conteudo}>
       <Text style={[estilos.sub, { color: cores.primary600 }]}>{agenda.evento.nome}</Text>
       <Text accessibilityRole="header" style={[estilos.titulo, { color: cores.ink900 }]}>Agenda</Text>
+      {topo}
       <AvisoConexao conexao={conexao} pendentes={pendentes} salvaHaTempo={conexao === 'offline'} />
       <MensagemErro texto={erro} />
       <AbasDias dias={listaDias} ativo={diaAtivo} onMudar={setDia} />
