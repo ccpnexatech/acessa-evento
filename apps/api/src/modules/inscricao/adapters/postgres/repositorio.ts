@@ -1,20 +1,23 @@
 /** Adaptador Postgres da inscrição; a RLS e as funções do banco garantem vagas e posse. */
 import type { Banco, Executor } from '../../../../shared/db/banco.ts';
 import type { RepositorioInscricao } from '../../application/casos-de-uso.ts';
-import type { DetalheEvento, Ingresso, Pedido, ResumoEvento } from '../../domain/inscricao.ts';
+import type { DetalheEvento, IngressoSalvo, Pedido, ResumoEvento } from '../../domain/inscricao.ts';
 
 const CAMPOS_EVENTO = `e.id, e.slug, e.nome, to_char(e.inicio, 'YYYY-MM-DD') as inicio, to_char(e.fim, 'YYYY-MM-DD') as fim,
   e.local, e.recursos_oferecidos as "recursosOferecidos", e.inscricoes_abertas as "inscricoesAbertas"`;
 
 const CAMPOS_PEDIDO = `id, status, metodo, valor_centavos as "valorCentavos", tipo_ingresso_id as "tipoIngressoId", evento_id as "eventoId"`;
 
-const SELECT_INGRESSO = `select i.id, t.nome as tipo, i.emitido_em as "emitidoEm",
+const SELECT_INGRESSO = `select i.id, i.evento_id as "eventoId", t.nome as tipo, p.nome_cracha as nome, i.emitido_em as "emitidoEm",
   json_build_object('slug', e.slug, 'nome', e.nome, 'inicio', to_char(e.inicio, 'YYYY-MM-DD'),
-                    'fim', to_char(e.fim, 'YYYY-MM-DD'), 'local', e.local) as evento
-  from ingresso i join evento e on e.id = i.evento_id join tipo_ingresso t on t.id = i.tipo_ingresso_id`;
+                    'fim', to_char(e.fim, 'YYYY-MM-DD'), 'local', e.local) as evento,
+  case when c.id is null then null else json_build_object('em', to_char(c.feito_em at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'), 'portao', c.portao) end as checkin
+  from ingresso i join evento e on e.id = i.evento_id join tipo_ingresso t on t.id = i.tipo_ingresso_id
+  join pessoa p on p.id = i.pessoa_id
+  left join checkin_primeiro c on c.ingresso_id = i.id`;
 
-const ingressoDoPedido = async (tx: Executor, pedidoId: string): Promise<Ingresso | null> =>
-  (await tx.consultar<Ingresso>(`${SELECT_INGRESSO} where i.pedido_id = $1 and i.cancelado_em is null`, [pedidoId]))[0] ?? null;
+const ingressoDoPedido = async (tx: Executor, pedidoId: string): Promise<IngressoSalvo | null> =>
+  (await tx.consultar<IngressoSalvo>(`${SELECT_INGRESSO} where i.pedido_id = $1 and i.cancelado_em is null`, [pedidoId]))[0] ?? null;
 
 export function repositorioInscricao(banco: Banco): RepositorioInscricao {
   return {
@@ -86,7 +89,7 @@ export function repositorioInscricao(banco: Banco): RepositorioInscricao {
     },
     ingressos(pessoaId) {
       return banco.transacao({ pessoaId }, (tx) =>
-        tx.consultar<Ingresso>(`${SELECT_INGRESSO} where i.pessoa_id = $1 and i.cancelado_em is null order by e.inicio`, [pessoaId]));
+        tx.consultar<IngressoSalvo>(`${SELECT_INGRESSO} where i.pessoa_id = $1 and i.cancelado_em is null order by e.inicio`, [pessoaId]));
     },
   };
 }

@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { InscricaoServico } from './casos-de-uso.ts';
 import type { DependenciasInscricao, RepositorioInscricao } from './casos-de-uso.ts';
 import { pagamentoSimulado } from '../adapters/pagamento-simulado.ts';
-import type { DetalheEvento, Ingresso, Pedido } from '../domain/inscricao.ts';
+import type { DetalheEvento, IngressoSalvo, Pedido } from '../domain/inscricao.ts';
+import { assinadorEd25519, novaChavePrivada } from '../../../shared/qr/ed25519.ts';
 
 const P = '01900000-0000-7000-8000-0000000000aa';
 const CONGRESSISTA = '01900000-0000-7000-8000-000000000001';
@@ -25,7 +26,7 @@ function evento(parcial: Partial<DetalheEvento> = {}): DetalheEvento {
 /** Repositório em memória que imita as garantias do banco (vaga, pedido único por chave). */
 function memoria(ev = evento()) {
   const pedidos: (Pedido & { chave: string })[] = [];
-  const ingressos = new Map<string, Ingresso>();
+  const ingressos = new Map<string, IngressoSalvo>();
   const vagas = new Map([[CONGRESSISTA, 1], [UM_DIA, 0]]);
   const acessibilidade: unknown[] = [];
   const repo: RepositorioInscricao = {
@@ -50,7 +51,7 @@ function memoria(ev = evento()) {
         vagas.set(p.tipoIngressoId, (vagas.get(p.tipoIngressoId) ?? 0) + 1);
         return null;
       }
-      const ing = { id: `ing-${id}`, tipo: 'Congressista', emitidoEm: 'agora', evento: { slug: ev.slug, nome: ev.nome, inicio: ev.inicio, fim: ev.fim, local: ev.local } };
+      const ing = { id: `ing-${id}`, eventoId: ev.id, tipo: 'Congressista', nome: 'Ana', checkin: null, emitidoEm: 'agora', evento: { slug: ev.slug, nome: ev.nome, inicio: ev.inicio, fim: ev.fim, local: ev.local } };
       ingressos.set(id, ing);
       return ing;
     },
@@ -69,6 +70,7 @@ function servico(m = memoria(), extra: Partial<DependenciasInscricao> = {}) {
     pagamento,
     auditoria: { registrar: async (e) => void auditoria.push(e.acao) },
     notificador: { recibo: async (_p, r) => void recibos.push(r.evento) },
+    assinador: assinadorEd25519('t', novaChavePrivada()),
     ...extra,
   });
   return { s, m, pagamento, auditoria, recibos };
@@ -83,6 +85,8 @@ test('Pix aprovado: emite ingresso, audita, manda recibo e guarda o pedido de ac
   assert.equal(r.novo, true);
   assert.equal(r.pedido.status, 'aprovado');
   assert.equal(r.ingresso.evento.nome, 'COCAL 2026');
+  assert.match(r.ingresso.qr, /^AE1\.[\w-]+\.[\w-]+$/);
+  assert.equal('eventoId' in r.ingresso, false);
   assert.deepEqual(auditoria, ['inscricao.concluida']);
   assert.deepEqual(recibos, ['COCAL 2026']);
   assert.deepEqual(m.acessibilidade, [{ recursos: ['libras'], apagar: '2026-08-02' }]);

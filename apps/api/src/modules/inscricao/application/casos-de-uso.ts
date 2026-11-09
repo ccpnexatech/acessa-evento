@@ -8,7 +8,9 @@
  * "Não cobrar duas vezes").
  */
 import { ErroInscricao, dataExpurgo, filtroRecurso, validarChave, validarInscricao, validarSlug } from '../domain/inscricao.ts';
-import type { DetalheEvento, Ingresso, Metodo, Pedido, RecursoPedido, ResumoEvento, StatusPedido } from '../domain/inscricao.ts';
+import type { DetalheEvento, Ingresso, IngressoSalvo, Metodo, Pedido, RecursoPedido, ResumoEvento, StatusPedido } from '../domain/inscricao.ts';
+import { emitirToken, validadeDoEvento } from '../../../shared/qr/token.ts';
+import type { Assinador } from '../../../shared/qr/token.ts';
 
 export interface NovaReserva {
   readonly eventoId: string;
@@ -29,9 +31,9 @@ export interface RepositorioInscricao {
   /** Prende uma vaga e cria o pedido pendente; 'esgotado' quando não há vaga. */
   reservar(pessoaId: string, r: NovaReserva): Promise<Pedido | 'esgotado'>;
   /** Grava o resultado; aprovado emite o ingresso, recusado devolve a vaga. */
-  concluir(pessoaId: string, pedidoId: string, status: Exclude<StatusPedido, 'pendente'>, referencia: string): Promise<Ingresso | null>;
-  ingressoDoPedido(pessoaId: string, pedidoId: string): Promise<Ingresso | null>;
-  ingressos(pessoaId: string): Promise<Ingresso[]>;
+  concluir(pessoaId: string, pedidoId: string, status: Exclude<StatusPedido, 'pendente'>, referencia: string): Promise<IngressoSalvo | null>;
+  ingressoDoPedido(pessoaId: string, pedidoId: string): Promise<IngressoSalvo | null>;
+  ingressos(pessoaId: string): Promise<IngressoSalvo[]>;
 }
 
 export interface Cobranca {
@@ -69,6 +71,8 @@ export interface DependenciasInscricao {
   readonly pagamento: ProvedorPagamento;
   readonly notificador: NotificadorInscricao;
   readonly auditoria: AuditoriaInscricao;
+  /** Assina o QR do ingresso (ADR 0006). */
+  readonly assinador: Assinador;
 }
 
 export interface ResultadoInscricao {
@@ -97,8 +101,12 @@ export class InscricaoServico {
     return e;
   }
 
-  ingressos(pessoaId: string): Promise<Ingresso[]> {
-    return this.#d.repositorio.ingressos(pessoaId);
+  async ingressos(pessoaId: string): Promise<Ingresso[]> {
+    return (await this.#d.repositorio.ingressos(pessoaId)).map((i) => this.#comQr(i));
+  }
+
+  #comQr({ eventoId, ...i }: IngressoSalvo): Ingresso {
+    return { ...i, qr: emitirToken({ i: i.id, e: eventoId, x: validadeDoEvento(i.evento.fim) }, this.#d.assinador) };
   }
 
   async inscrever(pessoaId: string, slug: string, chaveBruta: string | undefined, corpo: unknown): Promise<ResultadoInscricao> {
@@ -110,7 +118,7 @@ export class InscricaoServico {
     if (anterior?.status === 'recusado') throw new ErroInscricao('pagamento_recusado', RECUSADO);
     if (anterior?.status === 'aprovado') {
       const ingresso = await repo.ingressoDoPedido(pessoaId, anterior.id);
-      if (ingresso) return { pedido: anterior, ingresso, novo: false };
+      if (ingresso) return { pedido: anterior, ingresso: this.#comQr(ingresso), novo: false };
     }
 
     const evento = await this.evento(slug, pessoaId);
@@ -157,6 +165,6 @@ export class InscricaoServico {
     await this.#d.notificador
       .recibo(pessoaId, { evento: evento.nome, tipo: tipo.nome, valorCentavos: pedido.valorCentavos, metodo: pedido.metodo, pedidoId: pedido.id })
       .catch(() => undefined);
-    return { pedido: { ...pedido, status: 'aprovado' }, ingresso, novo: true };
+    return { pedido: { ...pedido, status: 'aprovado' }, ingresso: this.#comQr(ingresso), novo: true };
   }
 }

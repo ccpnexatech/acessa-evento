@@ -9,10 +9,11 @@ import { loggerSilencioso } from '../../../../shared/logger.ts';
 import { InscricaoServico } from '../../application/casos-de-uso.ts';
 import { pagamentoSimulado } from '../pagamento-simulado.ts';
 import { registrarRotasInscricao } from './rotas-inscricao.ts';
-import type { Ingresso } from '../../domain/inscricao.ts';
+import type { Ingresso, IngressoSalvo } from '../../domain/inscricao.ts';
+import { assinadorEd25519, novaChavePrivada } from '../../../../shared/qr/ed25519.ts';
 
 const TIPO = '01900000-0000-7000-8000-000000000001';
-const ING: Ingresso = { id: 'i1', tipo: 'Congressista', emitidoEm: 'x', evento: { slug: 'cocal-2026', nome: 'COCAL 2026', inicio: '2026-07-01', fim: '2026-07-03', local: 'F' } };
+const ING: IngressoSalvo = { id: 'i1', eventoId: 'e1', tipo: 'Congressista', nome: 'Ana', checkin: null, emitidoEm: 'x', evento: { slug: 'cocal-2026', nome: 'COCAL 2026', inicio: '2026-07-01', fim: '2026-07-03', local: 'F' } };
 let servidor: Server;
 let base: string;
 let recebido: string | null = null;
@@ -44,6 +45,7 @@ before(async () => {
     pagamento: pagamentoSimulado(),
     auditoria: { registrar: async () => undefined },
     notificador: { recibo: async () => undefined },
+    assinador: assinadorEd25519('t', novaChavePrivada()),
   });
   const r = new Roteador();
   registrarRotasInscricao(r, servico, {

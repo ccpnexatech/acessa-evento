@@ -43,11 +43,20 @@ export interface Pedido {
   readonly eventoId: string;
 }
 
-export interface Ingresso {
+export interface IngressoSalvo {
   readonly id: string;
+  readonly eventoId: string;
   readonly evento: { readonly slug: string; readonly nome: string; readonly inicio: string; readonly fim: string; readonly local: string };
   readonly tipo: string;
+  readonly nome: string | null;
   readonly emitidoEm: string;
+  /** Primeiro check-in (o que vale), para o app mostrar "Check-in feito". */
+  readonly checkin: { readonly em: string; readonly portao: string } | null;
+}
+
+/** O ingresso como o app recebe: com o QR assinado, que funciona sem internet. */
+export interface Ingresso extends Omit<IngressoSalvo, 'eventoId'> {
+  readonly qr: string;
 }
 
 export interface DadosInscricao {
