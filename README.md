@@ -2,7 +2,7 @@
 
 App de eventos acessível: inscrição, agenda, ingresso que funciona sem internet, check-in por QR e um assistente guiado para tirar dúvidas. Evento de referência: Congresso COCAL 2026, no Centro de Eventos do Ceará, de 1 a 3 de julho de 2026.
 
-> Projeto de portfólio em construção. Fase atual: **5, inscrição e pagamento simulado** (fases 1 a 4 concluídas). Veja o [plano de execução](#plano).
+> Projeto de portfólio em construção. Fase atual: **6, ingresso e credenciamento offline** (fases 1 a 5 concluídas). Veja o [plano de execução](#plano).
 
 ## O que tem aqui
 
@@ -73,6 +73,10 @@ Em produção, a API conecta sempre com um usuário membro do papel `app_api`, n
 | `GET /eventos/:slug/favoritos` | Atividades favoritas da pessoa |
 | `PUT /favoritos/:atividadeId` | Marca como favorita (idempotente) |
 | `DELETE /favoritos/:atividadeId` | Desmarca (idempotente) |
+| `GET /eventos` | Eventos publicados; `?recurso=libras` filtra pelo que o evento oferece |
+| `GET /eventos/:slug` | Página do evento: tipos de ingresso (com esgotado), acessibilidade e destaques |
+| `POST /eventos/:slug/inscricoes` | Inscrição e pagamento simulado; exige `Idempotency-Key` (a mesma chave nunca cobra duas vezes) |
+| `GET /ingressos` | Ingressos da pessoa |
 
 Erros seguem o formato Problem Details (RFC 9457) com um `codigo` estável e uma mensagem pronta para a pessoa.
 
