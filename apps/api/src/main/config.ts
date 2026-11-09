@@ -1,6 +1,8 @@
 /** Lê e valida a configuração do ambiente uma vez, no início (falha cedo). */
 import { lerChaves } from '../shared/cripto/aes-gcm.ts';
 import type { Chaves } from '../shared/cripto/aes-gcm.ts';
+import type { KeyObject } from 'node:crypto';
+import { chavePrivadaDeBase64 } from '../shared/qr/ed25519.ts';
 
 export type Ambiente = 'desenvolvimento' | 'teste' | 'producao';
 
@@ -13,6 +15,13 @@ export interface ConfigBanco {
   readonly url: string;
   readonly chaves: Chaves;
   readonly email: ConfigEmail;
+  /** Chave Ed25519 que assina o QR dos ingressos. Fora de produção, sem ela, a API gera uma temporária. */
+  readonly qr?: ConfigQr;
+}
+
+export interface ConfigQr {
+  readonly kid: string;
+  readonly privada: KeyObject;
 }
 
 export interface Config {
@@ -52,13 +61,32 @@ export function lerConfig(env: Readonly<Record<string, string | undefined>>): Co
       erros.push((e as Error).message);
     }
     const email = lerEmail(env, ambiente, erros);
-    if (chaves && email) banco = { url, chaves, email };
+    const qr = lerQr(env, ambiente, erros);
+    if (chaves && email) banco = qr ? { url, chaves, email, qr } : { url, chaves, email };
   } else if (ambiente === 'producao') {
     erros.push('DATABASE_URL é obrigatória em produção');
   }
 
   if (erros.length) throw new Error(`Configuração inválida:\n- ${erros.join('\n- ')}`);
   return banco ? { porta, ambiente, corsOrigens, banco } : { porta, ambiente, corsOrigens };
+}
+
+function lerQr(env: Readonly<Record<string, string | undefined>>, ambiente: Ambiente, erros: string[]): ConfigQr | undefined {
+  const texto = env['QR_CHAVE_PRIVADA'];
+  const kid = env['QR_CHAVE_ID'] ?? 'qr-1';
+  if (!texto) {
+    if (ambiente === 'producao') erros.push('QR_CHAVE_PRIVADA é obrigatória em produção (Ed25519, PKCS#8 DER em base64)');
+    return undefined;
+  }
+  if (!/^[a-z0-9-]{1,20}$/.test(kid)) erros.push('QR_CHAVE_ID precisa ter de 1 a 20 letras minúsculas, números ou hífen');
+  try {
+    const privada = chavePrivadaDeBase64(texto);
+    if (privada.asymmetricKeyType !== 'ed25519') throw new Error('tipo');
+    return { kid, privada };
+  } catch {
+    erros.push('QR_CHAVE_PRIVADA inválida: use uma chave Ed25519 em PKCS#8 DER base64');
+    return undefined;
+  }
 }
 
 function lerEmail(env: Readonly<Record<string, string | undefined>>, ambiente: Ambiente, erros: string[]): ConfigEmail | undefined {

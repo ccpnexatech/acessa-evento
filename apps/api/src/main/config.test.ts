@@ -1,8 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { randomBytes } from 'node:crypto';
+import { generateKeyPairSync, randomBytes } from 'node:crypto';
 import { lerConfig } from './config.ts';
 
+const QR = generateKeyPairSync('ed25519').privateKey.export({ format: 'der', type: 'pkcs8' }).toString('base64');
 const chaves = { CHAVES_CIFRA: `1:${randomBytes(32).toString('base64')}`, CHAVE_INDICE: randomBytes(32).toString('base64') };
 
 test('usa padrões seguros quando nada é informado', () => {
@@ -12,7 +13,7 @@ test('usa padrões seguros quando nada é informado', () => {
 test('lê porta, ambiente, origens, banco, chaves e e-mail', () => {
   const c = lerConfig({
     PORTA: '8080', AMBIENTE: 'producao', CORS_ORIGENS: 'https://a.com, https://b.com', DATABASE_URL: 'postgres://api@db/acessa',
-    RESEND_API_KEY: 're_teste', EMAIL_REMETENTE: 'Acessa Evento <acesso@exemplo.com.br>', ...chaves,
+    RESEND_API_KEY: 're_teste', EMAIL_REMETENTE: 'Acessa Evento <acesso@exemplo.com.br>', QR_CHAVE_PRIVADA: QR, ...chaves,
   });
   assert.equal(c.porta, 8080);
   assert.deepEqual(c.corsOrigens, ['https://a.com', 'https://b.com']);
@@ -43,4 +44,16 @@ test('banco exige URL válida e chaves; produção exige banco e e-mail real', (
   assert.throws(() => lerConfig({ AMBIENTE: 'producao', DATABASE_URL: 'postgres://x/y', EMAIL_PROVEDOR: 'dev', ...chaves }), /não é permitido em produção/);
   assert.throws(() => lerConfig({ AMBIENTE: 'producao', DATABASE_URL: 'postgres://x/y', ...chaves }), /RESEND_API_KEY/);
   assert.throws(() => lerConfig({ DATABASE_URL: 'postgres://x/y', EMAIL_PROVEDOR: 'pombo', ...chaves }), /EMAIL_PROVEDOR inválido/);
+});
+
+test('chave do QR: lida do ambiente, obrigatória em produção e validada', () => {
+  const der = (t: 'ed25519' | 'x25519') => (t === 'ed25519' ? generateKeyPairSync('ed25519') : generateKeyPairSync('x25519')).privateKey.export({ format: 'der', type: 'pkcs8' }).toString('base64');
+  const base = { DATABASE_URL: 'postgres://x/y', ...chaves };
+  const c = lerConfig({ ...base, QR_CHAVE_PRIVADA: der('ed25519'), QR_CHAVE_ID: 'qr-2026' });
+  assert.equal(c.banco?.qr?.kid, 'qr-2026');
+  assert.equal(lerConfig(base).banco?.qr, undefined);
+  assert.throws(() => lerConfig({ ...base, QR_CHAVE_PRIVADA: 'lixo' }), /QR_CHAVE_PRIVADA inválida/);
+  assert.throws(() => lerConfig({ ...base, QR_CHAVE_PRIVADA: der('x25519') }), /QR_CHAVE_PRIVADA inválida/);
+  assert.throws(() => lerConfig({ ...base, QR_CHAVE_PRIVADA: der('ed25519'), QR_CHAVE_ID: 'Com Espaço' }), /QR_CHAVE_ID/);
+  assert.throws(() => lerConfig({ ...base, AMBIENTE: 'producao', RESEND_API_KEY: 'r', EMAIL_REMETENTE: 'a <a@b.co>' }), /QR_CHAVE_PRIVADA é obrigatória/);
 });
