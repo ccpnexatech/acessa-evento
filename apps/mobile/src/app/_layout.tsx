@@ -4,6 +4,7 @@ import { TemaProvider } from '../shared/tema/TemaProvider';
 import { ProvedorSessao, useSessao } from '../shared/sessao/ProvedorSessao';
 import { ProvedorAgenda } from '../features/agenda/ProvedorAgenda';
 import { EVENTO_SLUG } from '../shared/config';
+import { cofreArquivos } from '../shared/armazenamento/cofre';
 
 function Rotas() {
   const { estado, requisitar, cofre } = useSessao();
@@ -25,7 +26,7 @@ function Rotas() {
 
 export default function Layout() {
   return (
-    <TemaProvider>
+    <TemaProvider cofre={cofreArquivos}>
       <ProvedorSessao>
         <Rotas />
       </ProvedorSessao>
