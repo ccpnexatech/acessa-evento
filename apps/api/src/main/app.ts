@@ -15,9 +15,15 @@ import { registrarRotasSaude } from '../modules/saude/adapters/http/rotas-saude.
 import type { DependenciasConta } from '../modules/conta/application/portas.ts';
 import { registrarRotasConta } from '../modules/conta/adapters/http/rotas-conta.ts';
 import { auditoriaPostgres, repositorioCodigos, repositorioPessoas, repositorioSessoes } from '../modules/conta/adapters/postgres/repositorios.ts';
-import { enviadorDesenvolvimento, enviadorResend } from '../modules/conta/adapters/email.ts';
+import { enviadorDesenvolvimento, enviadorResend, enviarPelaResend } from '../modules/conta/adapters/email.ts';
 import { aleatorioSeguro } from '../modules/conta/adapters/aleatorio.ts';
-import { Autenticar } from '../modules/conta/application/acesso.ts';
+import { Autenticar, CONTEXTO } from '../modules/conta/application/acesso.ts';
+import { InscricaoServico } from '../modules/inscricao/application/casos-de-uso.ts';
+import type { DependenciasInscricao } from '../modules/inscricao/application/casos-de-uso.ts';
+import { repositorioInscricao } from '../modules/inscricao/adapters/postgres/repositorio.ts';
+import { registrarRotasInscricao } from '../modules/inscricao/adapters/http/rotas-inscricao.ts';
+import { pagamentoSimulado } from '../modules/inscricao/adapters/pagamento-simulado.ts';
+import { notificadorPorEmail } from '../modules/inscricao/adapters/recibo.ts';
 import { ProgramacaoServico } from '../modules/programacao/application/casos-de-uso.ts';
 import type { RepositorioProgramacao } from '../modules/programacao/application/casos-de-uso.ts';
 import { repositorioProgramacao } from '../modules/programacao/adapters/postgres/repositorio.ts';
@@ -38,6 +44,8 @@ export interface Dependencias {
   readonly conta?: DependenciasConta;
   /** Programação; exige o módulo conta para identificar a pessoa. */
   readonly programacao?: RepositorioProgramacao;
+  /** Inscrição e pagamento; também exige o módulo conta. */
+  readonly inscricao?: DependenciasInscricao;
 }
 
 /** Identifica a pessoa pelo token Bearer, usando o caso de uso do módulo conta. */
@@ -72,6 +80,9 @@ export function criarApp(d: Dependencias): Server {
   if (d.conta && d.programacao) {
     registrarRotasProgramacao(roteador, new ProgramacaoServico(d.programacao), identificacao(d.conta));
   }
+  if (d.conta && d.inscricao) {
+    registrarRotasInscricao(roteador, new InscricaoServico(d.inscricao), identificacao(d.conta));
+  }
 
   return criarServidor({
     roteador,
@@ -94,6 +105,25 @@ export function dependenciasConta(banco: Banco, config: ConfigBanco, logger: Log
     protecao: new CifradorAesGcm(config.chaves),
     aleatorio: aleatorioSeguro,
     relogio: { agora: () => new Date() },
+  };
+}
+
+/** Inscrição com o pagamento simulado do MVP (ADR 0007) e recibo pelo mesmo canal de e-mail da conta. */
+export function dependenciasInscricao(banco: Banco, conta: DependenciasConta, config: ConfigBanco, logger: Logger): DependenciasInscricao {
+  const email = config.email;
+  return {
+    repositorio: repositorioInscricao(banco),
+    pagamento: pagamentoSimulado(),
+    auditoria: conta.auditoria,
+    notificador: notificadorPorEmail({
+      async emailDe(pessoaId) {
+        const p = await conta.pessoas.obter(pessoaId);
+        return p ? conta.protecao.decifrar(p.emailCifrado, CONTEXTO.email) : null;
+      },
+      enviar: email.provedor === 'resend'
+        ? (para, assunto, texto) => enviarPelaResend({ chave: email.chave, remetente: email.remetente }, para, assunto, texto)
+        : async (_para, assunto) => logger.log('info', 'email_dev', { assunto }),
+    }),
   };
 }
 

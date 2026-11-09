@@ -33,18 +33,22 @@ export interface OpcoesResend {
   readonly fetch?: typeof fetch;
 }
 
+/** Envio de texto simples pela Resend; reaproveitado pelo recibo da inscrição. */
+export async function enviarPelaResend(o: OpcoesResend, para: string, assunto: string, texto: string): Promise<void> {
+  const r = await (o.fetch ?? fetch)('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { authorization: `Bearer ${o.chave}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ from: o.remetente, to: [para], subject: assunto, text: texto }),
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!r.ok) throw new Error(`Falha ao enviar e-mail (HTTP ${r.status}).`);
+}
+
 export function enviadorResend(o: OpcoesResend): EnviadorEmail {
-  const chamar = o.fetch ?? fetch;
   return {
     async enviarCodigo(email, codigo) {
       const { assunto, texto } = assuntoECorpo(codigo);
-      const r = await chamar('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { authorization: `Bearer ${o.chave}`, 'content-type': 'application/json' },
-        body: JSON.stringify({ from: o.remetente, to: [email], subject: assunto, text: texto }),
-        signal: AbortSignal.timeout(10_000),
-      });
-      if (!r.ok) throw new Error(`Falha ao enviar e-mail (HTTP ${r.status}).`);
+      await enviarPelaResend(o, email, assunto, texto);
     },
   };
 }
