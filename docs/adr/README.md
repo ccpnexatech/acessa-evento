@@ -21,3 +21,4 @@
 | 0017 | [Autenticação própria: código por e-mail e sessão opaca](0017-autenticacao-propria-com-codigo-e-sessao-opaca.md) | Aceita |
 | 0018 | [Cache offline e fila de favoritos próprios, atrás de portas](0018-cache-offline-e-fila-de-favoritos-proprios.md) | Aceita |
 | 0019 | [Navegação com Expo Router](0019-expo-router.md) | Aceita |
+| 0020 | [Acessibilidade verificada na escrita, nos testes e no aparelho](0020-acessibilidade-verificada-na-escrita-e-nos-testes.md) | Aceita |
