@@ -16,7 +16,7 @@
     "dev": "node scripts/dev.ts",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc -p tsconfig.json && npm run typecheck --workspaces --if-present",
-    "test": "node --test \"scripts/**/*.test.ts\" && npm run test --workspaces --if-present",
+    "test": "node --test \"scripts/**/*.test.ts\" \"tools/**/*.test.ts\" && npm run test --workspaces --if-present",
     "e2e": "npm run e2e --workspaces --if-present",
     "security": "node scripts/security-check.ts",
     "verify": "node scripts/verify.ts",

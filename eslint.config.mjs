@@ -1,6 +1,7 @@
 // Lint único para o monorepo. Regras de arquitetura (camadas) ficam em apps/api.
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
+import acessibilidade from './tools/eslint/acessibilidade.mjs';
 
 export default tseslint.config(
   {
@@ -26,6 +27,17 @@ export default tseslint.config(
           { group: ['node:*', 'pg', '**/adapters/**', '**/infra/**', '**/main/**'], message: 'Domínio e aplicação dependem só de portas (interfaces), nunca de infraestrutura.' },
         ],
       }],
+    },
+  },
+  {
+    // Acessibilidade na escrita (ADR 0020): toque, campo e imagem sempre com nome.
+    files: ['apps/mobile/src/**/*.tsx'],
+    plugins: { acessibilidade },
+    rules: {
+      'acessibilidade/toque-com-papel': 'error',
+      'acessibilidade/toque-com-nome': 'error',
+      'acessibilidade/campo-com-rotulo': 'error',
+      'acessibilidade/imagem-com-descricao': 'error',
     },
   },
 );
