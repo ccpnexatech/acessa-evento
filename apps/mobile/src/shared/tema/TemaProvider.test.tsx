@@ -1,3 +1,4 @@
+import { cores } from '@acessa-evento/tokens';
 import { AccessibilityInfo, Text } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { cofreEmMemoria } from '../armazenamento/cofre';
@@ -71,7 +72,6 @@ describe('TemaProvider', () => {
 
 describe('contornoCartao', () => {
   it('só desenha borda quando cartão e fundo têm a mesma cor', () => {
-    const { cores } = jest.requireActual<typeof import('@acessa-evento/tokens')>('@acessa-evento/tokens');
     expect(contornoCartao(cores.light)).toBeNull();
     expect(contornoCartao(cores['alto-contraste'])).toEqual({ borderWidth: 2, borderColor: '#000000' });
   });
