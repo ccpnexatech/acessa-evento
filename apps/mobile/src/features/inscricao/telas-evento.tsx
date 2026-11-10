@@ -3,8 +3,9 @@
  * página do evento. Abertas sem login; a navegação chega por callback.
  */
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import { espaco, raio } from '@acessa-evento/tokens';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { Tocavel } from '../../shared/ui/Tocavel';
+import { espaco, raio, tamanho } from '@acessa-evento/tokens';
 import { useTema } from '../../shared/tema/TemaProvider';
 import { useCarga } from '../../shared/hooks/useCarga';
 import { Botao, MensagemErro, Paragrafo, Tela } from '../../shared/ui/componentes';
@@ -35,7 +36,7 @@ function CartaoEvento({ evento: e, onAbrir }: { evento: ResumoEvento; onAbrir: (
   const { cores } = useTema();
   const quando = periodo(e.inicio, e.fim);
   return (
-    <Pressable
+    <Tocavel
       accessibilityRole="button"
       accessibilityLabel={`${e.nome}. ${quando}, ${e.local}${e.inscricoesAbertas ? '. Inscrições abertas' : ''}`}
       accessibilityHint="Abre a página do evento"
@@ -47,7 +48,7 @@ function CartaoEvento({ evento: e, onAbrir }: { evento: ResumoEvento; onAbrir: (
       <Text style={[estilos.meta, { color: cores.ink600 }]}>{e.local}</Text>
       {e.inscricoesAbertas ? <Text style={[estilos.meta, { color: cores.primary700, fontWeight: '700' }]}>Inscrições abertas</Text> : null}
       <SelosRecursos recursos={e.recursosOferecidos} />
-    </Pressable>
+    </Tocavel>
   );
 }
 
@@ -141,7 +142,7 @@ function PaginaEvento({ evento: e, jaInscrito, onInscrever, onVerIngresso, onVol
 
 const estilos = StyleSheet.create({
   filtros: { flexDirection: 'row', flexWrap: 'wrap', gap: espaco['2'] },
-  cartao: { borderRadius: raio.lg, padding: espaco['4'], gap: espaco['1'] },
+  cartao: { borderRadius: raio.lg, padding: espaco['4'], gap: espaco['1'], minHeight: tamanho.touchLg },
   titulo: { fontSize: 20, lineHeight: 28, fontWeight: '700' },
   secao: { fontSize: 20, lineHeight: 28, fontWeight: '700' },
   meta: { fontSize: 16, lineHeight: 24 },

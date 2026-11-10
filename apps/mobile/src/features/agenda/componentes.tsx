@@ -3,7 +3,8 @@
  * chips de filtro, selos de acessibilidade e cartão da atividade.
  */
 import { useEffect } from 'react';
-import { AccessibilityInfo, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, Platform, StyleSheet, Text, View } from 'react-native';
+import { Tocavel } from '../../shared/ui/Tocavel';
 import { espaco, raio, tamanho } from '@acessa-evento/tokens';
 import { useTema } from '../../shared/tema/TemaProvider';
 import { NOME_RECURSO, hora } from './modelo';
@@ -41,7 +42,7 @@ export function AbasDias({ dias, ativo, onMudar }: { dias: readonly Dia[]; ativo
       {dias.map((d) => {
         const on = d.id === ativo;
         return (
-          <Pressable
+          <Tocavel
             key={d.id}
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
@@ -51,7 +52,7 @@ export function AbasDias({ dias, ativo, onMudar }: { dias: readonly Dia[]; ativo
           >
             <Text style={[estilos.abaSemana, { color: on ? cores.onPrimary : cores.ink600 }]}>{d.semana}</Text>
             <Text style={[estilos.abaData, { color: on ? cores.onPrimary : cores.ink900 }]}>{d.data}</Text>
-          </Pressable>
+          </Tocavel>
         );
       })}
     </View>
@@ -61,14 +62,14 @@ export function AbasDias({ dias, ativo, onMudar }: { dias: readonly Dia[]; ativo
 export function Chip({ rotulo, ligado, onMudar }: { rotulo: string; ligado: boolean; onMudar: (v: boolean) => void }) {
   const { cores } = useTema();
   return (
-    <Pressable
+    <Tocavel
       accessibilityRole="togglebutton"
       accessibilityState={{ checked: ligado }}
       onPress={() => onMudar(!ligado)}
       style={[estilos.chip, { backgroundColor: ligado ? cores.primary100 : cores.surface100, borderColor: ligado ? cores.primary600 : cores.borderControl }]}
     >
       <Text style={[estilos.chipTexto, { color: ligado ? cores.primary700 : cores.ink900 }]}>{ligado ? `✓ ${rotulo}` : rotulo}</Text>
-    </Pressable>
+    </Tocavel>
   );
 }
 
@@ -89,7 +90,7 @@ export function Selos({ recursos }: { recursos: readonly Recurso[] }) {
 export function BotaoFavorito({ titulo, ligado, onPress }: { titulo: string; ligado: boolean; onPress: () => void }) {
   const { cores } = useTema();
   return (
-    <Pressable
+    <Tocavel
       accessibilityRole="togglebutton"
       accessibilityLabel={`Favoritar ${titulo}`}
       accessibilityState={{ checked: ligado }}
@@ -97,8 +98,9 @@ export function BotaoFavorito({ titulo, ligado, onPress }: { titulo: string; lig
       onPress={onPress}
       style={estilos.fav}
     >
-      <Text style={{ fontSize: 26, color: ligado ? cores.accent400 : cores.ink600 }}>{ligado ? '★' : '☆'}</Text>
-    </Pressable>
+      {/* Âmbar sobre fundo claro não chega a 3:1 (WCAG 1.4.11): a estrela marcada usa a cor primária escura. */}
+      <Text style={{ fontSize: 26, color: ligado ? cores.primary700 : cores.ink600 }}>{ligado ? '★' : '☆'}</Text>
+    </Tocavel>
   );
 }
 
@@ -116,7 +118,7 @@ export function CartaoAtividade({ atividade: a, fuso, agora, favorita, onAbrir, 
   const horario = `${hora(a.inicio, fuso)} às ${hora(a.fim, fuso)}`;
   return (
     <View style={[estilos.cartao, { backgroundColor: cores.surface100, borderColor: agora ? cores.primary600 : 'transparent' }]}>
-      <Pressable
+      <Tocavel
         accessibilityRole="button"
         accessibilityLabel={`${a.titulo}. ${horario}${a.sala ? `, ${a.sala.nome}` : ''}${agora ? '. Acontecendo agora' : ''}`}
         accessibilityHint="Abre os detalhes"
@@ -131,7 +133,7 @@ export function CartaoAtividade({ atividade: a, fuso, agora, favorita, onAbrir, 
         {a.sala ? <Text style={[estilos.meta, { color: cores.ink600 }]}>{`${a.sala.nome} · ${a.sala.local}`}</Text> : null}
         {a.palestrantes.length ? <Text style={[estilos.meta, { color: cores.ink600 }]}>{a.palestrantes.map((p) => p.nome).join(', ')}</Text> : null}
         <Selos recursos={a.recursos} />
-      </Pressable>
+      </Tocavel>
       <BotaoFavorito titulo={a.titulo} ligado={favorita} onPress={onFavoritar} />
     </View>
   );
@@ -150,7 +152,7 @@ const estilos = StyleSheet.create({
   selo: { fontSize: 14, lineHeight: 20, fontWeight: '700', paddingHorizontal: espaco['2'], paddingVertical: 2, borderRadius: raio.sm, borderWidth: 1, overflow: 'hidden' },
   fav: { width: tamanho.touchMin, height: tamanho.touchMin, alignItems: 'center', justifyContent: 'center' },
   cartao: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: raio.lg, borderWidth: 2, paddingLeft: espaco['4'], paddingVertical: espaco['3'], paddingRight: espaco['1'] },
-  cartaoCorpo: { flex: 1, gap: espaco['1'] },
+  cartaoCorpo: { flex: 1, gap: espaco['1'], minHeight: tamanho.touchMin },
   linha: { flexDirection: 'row', alignItems: 'center', gap: espaco['2'] },
   horario: { fontSize: 16, lineHeight: 24, fontWeight: '700' },
   agora: { fontSize: 14, lineHeight: 20, fontWeight: '700', paddingHorizontal: espaco['2'], borderRadius: raio.sm, overflow: 'hidden' },
