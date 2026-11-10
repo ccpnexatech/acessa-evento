@@ -5,7 +5,7 @@ import { LoggerJson } from '../shared/logger.ts';
 import { Banco } from '../shared/db/banco.ts';
 import { lerConfig } from './config.ts';
 import type { ConfigBanco } from './config.ts';
-import { assinadorQr, criarApp, dependenciasConta, dependenciasCredenciamento, dependenciasInscricao, dependenciasProgramacao, verificadoresPadrao } from './app.ts';
+import { assinadorQr, criarApp, dependenciasAssistente, dependenciasConta, dependenciasCredenciamento, dependenciasInscricao, dependenciasProgramacao, verificadoresPadrao } from './app.ts';
 
 const logger = new LoggerJson((linha) => process.stdout.write(linha));
 
@@ -36,6 +36,7 @@ function modulos(b: Banco, c: ConfigBanco) {
     programacao: dependenciasProgramacao(b),
     inscricao: dependenciasInscricao(b, conta, c, logger, assinador),
     credenciamento: dependenciasCredenciamento(b, conta, assinador),
+    assistente: dependenciasAssistente(b),
   };
 }
 

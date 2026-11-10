@@ -30,6 +30,10 @@ import { repositorioCredenciamento } from '../modules/credenciamento/adapters/po
 import { registrarRotasCredenciamento } from '../modules/credenciamento/adapters/http/rotas-credenciamento.ts';
 import { assinadorEd25519, novaChavePrivada } from '../shared/qr/ed25519.ts';
 import type { Assinador } from '../shared/qr/token.ts';
+import { AssistenteServico } from '../modules/assistente/application/casos-de-uso.ts';
+import type { RepositorioAssistente } from '../modules/assistente/application/casos-de-uso.ts';
+import { repositorioAssistente } from '../modules/assistente/adapters/postgres/repositorio.ts';
+import { registrarRotasAssistente } from '../modules/assistente/adapters/http/rotas-assistente.ts';
 import { ProgramacaoServico } from '../modules/programacao/application/casos-de-uso.ts';
 import type { RepositorioProgramacao } from '../modules/programacao/application/casos-de-uso.ts';
 import { repositorioProgramacao } from '../modules/programacao/adapters/postgres/repositorio.ts';
@@ -54,6 +58,8 @@ export interface Dependencias {
   readonly inscricao?: DependenciasInscricao;
   /** Credenciamento da equipe; também exige o módulo conta. */
   readonly credenciamento?: DependenciasCredenciamento;
+  /** Assistente guiado; também exige o módulo conta (para publicar). */
+  readonly assistente?: RepositorioAssistente;
 }
 
 /** Identifica a pessoa pelo token Bearer, usando o caso de uso do módulo conta. */
@@ -93,6 +99,9 @@ export function criarApp(d: Dependencias): Server {
   }
   if (d.conta && d.credenciamento) {
     registrarRotasCredenciamento(roteador, new CredenciamentoServico(d.credenciamento), identificacao(d.conta));
+  }
+  if (d.conta && d.assistente) {
+    registrarRotasAssistente(roteador, new AssistenteServico(d.assistente), identificacao(d.conta));
   }
 
   return criarServidor({
@@ -157,6 +166,8 @@ export function dependenciasCredenciamento(banco: Banco, conta: DependenciasCont
     agoraMs: () => Date.now(),
   };
 }
+
+export const dependenciasAssistente = (banco: Banco): RepositorioAssistente => repositorioAssistente(banco);
 
 export const dependenciasProgramacao = (banco: Banco): RepositorioProgramacao => repositorioProgramacao(banco);
 
