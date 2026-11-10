@@ -25,3 +25,4 @@
 | 0021 | [Inscrição idempotente, vagas reservadas no banco e cartão só de passagem](0021-inscricao-idempotente-e-vagas-no-banco.md) | Aceita |
 | 0022 | [QR assinado e credenciamento offline: formato, chaves e fila](0022-qr-assinado-e-credenciamento-offline.md) | Aceita |
 | 0023 | [Assistente publicado por versão, validado na API e avaliado sem dados pessoais](0023-assistente-versionado-e-avaliacao-anonima.md) | Aceita |
+| 0024 | [Qualidade verificável: auditor de acessibilidade, Sentry sem SDK e build pelo EAS](0024-qualidade-verificavel-auditor-sentry-e-eas.md) | Aceita |
