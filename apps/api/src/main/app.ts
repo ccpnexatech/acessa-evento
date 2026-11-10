@@ -30,6 +30,8 @@ import { repositorioCredenciamento } from '../modules/credenciamento/adapters/po
 import { registrarRotasCredenciamento } from '../modules/credenciamento/adapters/http/rotas-credenciamento.ts';
 import { assinadorEd25519, novaChavePrivada } from '../shared/qr/ed25519.ts';
 import type { Assinador } from '../shared/qr/token.ts';
+import { relatorNulo, relatorSentry } from '../shared/erros/relator.ts';
+import type { RelatorErros } from '../shared/erros/relator.ts';
 import { AssistenteServico } from '../modules/assistente/application/casos-de-uso.ts';
 import type { RepositorioAssistente } from '../modules/assistente/application/casos-de-uso.ts';
 import { repositorioAssistente } from '../modules/assistente/adapters/postgres/repositorio.ts';
@@ -60,6 +62,8 @@ export interface Dependencias {
   readonly credenciamento?: DependenciasCredenciamento;
   /** Assistente guiado; também exige o módulo conta (para publicar). */
   readonly assistente?: RepositorioAssistente;
+  /** Para testes; em produção vem de SENTRY_DSN. */
+  readonly relator?: RelatorErros;
 }
 
 /** Identifica a pessoa pelo token Bearer, usando o caso de uso do módulo conta. */
@@ -104,11 +108,21 @@ export function criarApp(d: Dependencias): Server {
     registrarRotasAssistente(roteador, new AssistenteServico(d.assistente), identificacao(d.conta));
   }
 
+  const relator = d.relator ?? (d.config.sentryDsn
+    ? relatorSentry({
+        dsn: d.config.sentryDsn,
+        ambiente: d.config.ambiente,
+        versao: d.versao,
+        plataforma: 'node',
+        aoFalhar: (motivo) => d.logger.log('warn', 'sentry_falhou', { motivo }),
+      })
+    : relatorNulo);
   return criarServidor({
     roteador,
     logger: d.logger,
     corsOrigens: d.config.corsOrigens,
     producao: d.config.ambiente === 'producao',
+    relator,
   });
 }
 

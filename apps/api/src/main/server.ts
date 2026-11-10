@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
 import { LoggerJson } from '../shared/logger.ts';
+import { relatorNulo, relatorSentry } from '../shared/erros/relator.ts';
 import { Banco } from '../shared/db/banco.ts';
 import { lerConfig } from './config.ts';
 import type { ConfigBanco } from './config.ts';
@@ -18,12 +19,23 @@ try {
 }
 
 const { version } = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as { version?: string };
+const versao = version ?? '0.0.0';
+const relator = config.sentryDsn
+  ? relatorSentry({ dsn: config.sentryDsn, ambiente: config.ambiente, versao, plataforma: 'node', aoFalhar: (motivo) => logger.log('warn', 'sentry_falhou', { motivo }) })
+  : relatorNulo;
+// Erro fora de uma requisição também chega ao Sentry antes de o processo seguir ou cair.
+process.on('unhandledRejection', (erro) => {
+  logger.log('error', 'promessa_sem_tratamento', { erro: erro instanceof Error ? erro.stack : String(erro) });
+  relator.capturar(erro, { etiquetas: { origem: 'unhandledRejection' } });
+});
+
 const banco = config.banco ? new Banco({ url: config.banco.url }) : undefined;
 const servidor = criarApp({
   config,
   logger,
+  relator,
   relogio: { agoraMs: () => Date.now() },
-  versao: version ?? '0.0.0',
+  versao,
   verificadores: verificadoresPadrao(banco),
   ...(banco && config.banco ? modulos(banco, config.banco) : {}),
 });

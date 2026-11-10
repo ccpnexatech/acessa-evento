@@ -12,6 +12,7 @@ import { ErroHttp } from './tipos.ts';
 import type { Metodo, Requisicao, Resposta } from './tipos.ts';
 import type { Roteador } from './roteador.ts';
 import type { Logger } from '../logger.ts';
+import type { RelatorErros } from '../erros/relator.ts';
 
 export interface OpcoesServidor {
   readonly roteador: Roteador;
@@ -19,6 +20,8 @@ export interface OpcoesServidor {
   readonly corsOrigens: readonly string[];
   readonly producao: boolean;
   readonly limiteCorpoBytes?: number;
+  /** Para onde vão os erros inesperados (500), além do log. */
+  readonly relator?: RelatorErros;
 }
 
 const METODOS = new Set<Metodo>(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']);
@@ -79,6 +82,9 @@ async function atender(req: IncomingMessage, res: ServerResponse, o: OpcoesServi
     }
   } catch (erro) {
     resposta = problema(erro, id, o.logger);
+    if (resposta.status === 500) {
+      o.relator?.capturar(erro, { etiquetas: { rota: `${req.method ?? ''} ${normalizar(url.pathname)}`, requisicao: id } });
+    }
   }
 
   const temCorpo = resposta.corpo !== undefined;

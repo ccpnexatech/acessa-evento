@@ -57,3 +57,9 @@ test('chave do QR: lida do ambiente, obrigatória em produção e validada', () 
   assert.throws(() => lerConfig({ ...base, QR_CHAVE_PRIVADA: der('ed25519'), QR_CHAVE_ID: 'Com Espaço' }), /QR_CHAVE_ID/);
   assert.throws(() => lerConfig({ ...base, AMBIENTE: 'producao', RESEND_API_KEY: 'r', EMAIL_REMETENTE: 'a <a@b.co>' }), /QR_CHAVE_PRIVADA é obrigatória/);
 });
+
+test('SENTRY_DSN opcional e validado', () => {
+  assert.equal(lerConfig({}).sentryDsn, undefined);
+  assert.deepEqual(lerConfig({ SENTRY_DSN: 'https://k@o1.ingest.sentry.io/7' }).sentryDsn, { chave: 'k', endpoint: 'https://o1.ingest.sentry.io/api/7/envelope/' });
+  assert.throws(() => lerConfig({ SENTRY_DSN: 'qualquer coisa' }), /SENTRY_DSN inválido/);
+});

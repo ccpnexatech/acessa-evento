@@ -3,6 +3,8 @@ import { lerChaves } from '../shared/cripto/aes-gcm.ts';
 import type { Chaves } from '../shared/cripto/aes-gcm.ts';
 import type { KeyObject } from 'node:crypto';
 import { chavePrivadaDeBase64 } from '../shared/qr/ed25519.ts';
+import { lerDsn } from '../shared/erros/relator.ts';
+import type { Dsn } from '../shared/erros/relator.ts';
 
 export type Ambiente = 'desenvolvimento' | 'teste' | 'producao';
 
@@ -30,6 +32,8 @@ export interface Config {
   readonly corsOrigens: readonly string[];
   /** Ausente = a API sobe sem banco e só responde a /saude. */
   readonly banco?: ConfigBanco;
+  /** DSN do Sentry; sem ele, erros ficam só no log (ADR 0024). */
+  readonly sentryDsn?: Dsn;
 }
 
 const AMBIENTES: readonly Ambiente[] = ['desenvolvimento', 'teste', 'producao'];
@@ -67,8 +71,12 @@ export function lerConfig(env: Readonly<Record<string, string | undefined>>): Co
     erros.push('DATABASE_URL é obrigatória em produção');
   }
 
+  const textoDsn = env['SENTRY_DSN'];
+  const sentryDsn = textoDsn ? lerDsn(textoDsn) : null;
+  if (textoDsn && !sentryDsn) erros.push('SENTRY_DSN inválido: use https://<chave>@<host>/<projeto>');
+
   if (erros.length) throw new Error(`Configuração inválida:\n- ${erros.join('\n- ')}`);
-  return banco ? { porta, ambiente, corsOrigens, banco } : { porta, ambiente, corsOrigens };
+  return { porta, ambiente, corsOrigens, ...(banco ? { banco } : {}), ...(sentryDsn ? { sentryDsn } : {}) };
 }
 
 function lerQr(env: Readonly<Record<string, string | undefined>>, ambiente: Ambiente, erros: string[]): ConfigQr | undefined {

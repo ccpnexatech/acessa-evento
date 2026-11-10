@@ -9,6 +9,7 @@ import { loggerSilencioso } from '../logger.ts';
 
 let servidor: Server;
 let base: string;
+const capturados: { erro: unknown; etiquetas: Readonly<Record<string, string>> | undefined }[] = [];
 
 before(async () => {
   const r = new Roteador()
@@ -17,7 +18,8 @@ before(async () => {
     .registrar('GET', '/proibido', async () => { throw new ErroHttp(403, 'sem_permissao', 'Sem permissão.'); })
     .registrar('GET', '/quebra', async () => { throw new Error('boom'); })
     .registrar('DELETE', '/vazio', async () => ({ status: 204 }));
-  servidor = criarServidor({ roteador: r, logger: loggerSilencioso, corsOrigens: ['https://app.exemplo'], producao: true, limiteCorpoBytes: 32 });
+  servidor = criarServidor({ roteador: r, logger: loggerSilencioso, corsOrigens: ['https://app.exemplo'], producao: true, limiteCorpoBytes: 32,
+    relator: { capturar: (erro, c) => void capturados.push({ erro, etiquetas: c?.etiquetas }) } });
   await new Promise<void>((ok) => servidor.listen(0, ok));
   base = `http://127.0.0.1:${(servidor.address() as AddressInfo).port}`;
 });
@@ -78,6 +80,12 @@ test('erro inesperado vira 500 sem vazar detalhes', async () => {
   const texto = await r.text();
   assert.doesNotMatch(texto, /boom/);
   assert.match(texto, /erro_interno/);
+  // Só o 500 vai para o relator, com rota e id da requisição.
+  assert.equal(capturados.length, 1);
+  assert.equal((capturados[0]?.erro as Error).message, 'boom');
+  assert.deepEqual(capturados[0]?.etiquetas, { rota: 'GET /quebra', requisicao: r.headers.get('x-request-id') });
+  await fetch(`${base}/proibido`);
+  assert.equal(capturados.length, 1);
 });
 
 test('método fora da lista é 405', async () => {
