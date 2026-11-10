@@ -1,7 +1,7 @@
 import { AccessibilityInfo, Text } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { cofreEmMemoria } from '../armazenamento/cofre';
-import { contrasteAtivo, resolverTema, TemaProvider, useTema } from './TemaProvider';
+import { contornoCartao, contrasteAtivo, resolverTema, TemaProvider, useTema } from './TemaProvider';
 
 describe('resolverTema', () => {
   it.each([
@@ -66,5 +66,13 @@ describe('TemaProvider', () => {
     await cofre.gravar('preferencia-contraste', 'ligado');
     await render(<TemaProvider cofre={cofre}><Espiao /></TemaProvider>);
     expect(await screen.findByText('alto-contraste')).toBeTruthy();
+  });
+});
+
+describe('contornoCartao', () => {
+  it('só desenha borda quando cartão e fundo têm a mesma cor', () => {
+    const { cores } = jest.requireActual<typeof import('@acessa-evento/tokens')>('@acessa-evento/tokens');
+    expect(contornoCartao(cores.light)).toBeNull();
+    expect(contornoCartao(cores['alto-contraste'])).toEqual({ borderWidth: 2, borderColor: '#000000' });
   });
 });

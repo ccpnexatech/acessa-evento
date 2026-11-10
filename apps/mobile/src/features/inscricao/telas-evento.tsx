@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Tocavel } from '../../shared/ui/Tocavel';
 import { espaco, raio, tamanho } from '@acessa-evento/tokens';
-import { useTema } from '../../shared/tema/TemaProvider';
+import { contornoCartao, useTema } from '../../shared/tema/TemaProvider';
 import { useCarga } from '../../shared/hooks/useCarga';
 import { Botao, MensagemErro, Paragrafo, Tela } from '../../shared/ui/componentes';
 import { Chip } from '../agenda/componentes';
@@ -41,7 +41,7 @@ function CartaoEvento({ evento: e, onAbrir }: { evento: ResumoEvento; onAbrir: (
       accessibilityLabel={`${e.nome}. ${quando}, ${e.local}${e.inscricoesAbertas ? '. Inscrições abertas' : ''}`}
       accessibilityHint="Abre a página do evento"
       onPress={onAbrir}
-      style={({ pressed }) => [estilos.cartao, { backgroundColor: cores.surface100, opacity: pressed ? 0.85 : 1 }]}
+      style={({ pressed }) => [estilos.cartao, { backgroundColor: cores.surface100, opacity: pressed ? 0.85 : 1 }, contornoCartao(cores)]}
     >
       <Text style={[estilos.titulo, { color: cores.ink900 }]}>{e.nome}</Text>
       <Text style={[estilos.meta, { color: cores.ink600 }]}>{quando}</Text>

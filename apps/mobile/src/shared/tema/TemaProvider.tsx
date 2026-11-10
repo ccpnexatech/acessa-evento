@@ -93,3 +93,11 @@ export function useTema(): ValorTema {
   if (!valor) throw new Error('useTema precisa estar dentro de <TemaProvider>.');
   return valor;
 }
+
+/**
+ * Contorno de cartão: quando o cartão e o fundo da tela têm a mesma cor
+ * (alto contraste), o cartão ganha borda para não sumir.
+ */
+export function contornoCartao(c: ValorTema['cores']): { borderWidth: number; borderColor: string } | null {
+  return c.surface100 === c.surface000 ? { borderWidth: 2, borderColor: c.borderHairline } : null;
+}

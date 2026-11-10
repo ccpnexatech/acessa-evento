@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import { AccessibilityInfo, Platform, StyleSheet, Text, View } from 'react-native';
 import { Tocavel } from '../../shared/ui/Tocavel';
 import { espaco, raio, tamanho } from '@acessa-evento/tokens';
-import { useTema } from '../../shared/tema/TemaProvider';
+import { contornoCartao, useTema } from '../../shared/tema/TemaProvider';
 import { NOME_RECURSO, hora } from './modelo';
 import type { Atividade, Dia, Recurso } from './modelo';
 import type { Conexao } from './ProvedorAgenda';
@@ -117,7 +117,7 @@ export function CartaoAtividade({ atividade: a, fuso, agora, favorita, onAbrir, 
   const { cores } = useTema();
   const horario = `${hora(a.inicio, fuso)} às ${hora(a.fim, fuso)}`;
   return (
-    <View style={[estilos.cartao, { backgroundColor: cores.surface100, borderColor: agora ? cores.primary600 : 'transparent' }]}>
+    <View style={[estilos.cartao, { backgroundColor: cores.surface100, borderColor: agora ? cores.primary600 : contornoCartao(cores)?.borderColor ?? 'transparent' }]}>
       <Tocavel
         accessibilityRole="button"
         accessibilityLabel={`${a.titulo}. ${horario}${a.sala ? `, ${a.sala.nome}` : ''}${agora ? '. Acontecendo agora' : ''}`}
