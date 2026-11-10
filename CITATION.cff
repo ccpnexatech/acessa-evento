@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "Se usar este projeto em trabalho acadêmico, cite-o assim."
+title: "Acessa Evento: app de eventos acessível, offline e verificado em código"
+abstract: >-
+  Aplicativo móvel (Expo/React Native) e API (Node.js nativo, PostgreSQL) para
+  eventos presenciais com acessibilidade como requisito de engenharia:
+  inscrição com pedido de recursos de acessibilidade, agenda e ingresso
+  offline, credenciamento por QR assinado com Ed25519 validado sem internet e
+  assistente guiado. Inclui auditoria automática de acessibilidade, decisões
+  registradas em ADRs e comportamento descrito em Gherkin.
+type: software
+authors:
+  - given-names: "Caio César Passos Viana"
+    family-names: "Ponte"
+    affiliation: "CCP NexaTech"
+repository-code: "https://github.com/ccpnexatech/acessa-evento"
+version: "0.8.0"
+date-released: "2026-11-10"
+keywords:
+  - acessibilidade
+  - eventos
+  - offline-first
+  - react-native
+  - wcag
+  - credenciamento
+  - lgpd
