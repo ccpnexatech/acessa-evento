@@ -2,7 +2,7 @@
 
 App de eventos acessível: inscrição, agenda, ingresso que funciona sem internet, check-in por QR e um assistente guiado para tirar dúvidas. Evento de referência: Congresso COCAL 2026, no Centro de Eventos do Ceará, de 1 a 3 de julho de 2026.
 
-> Projeto de portfólio em construção. Fase atual: **7, assistente guiado** (fases 1 a 6 concluídas). Veja o [plano de execução](#plano).
+> Projeto de portfólio em construção. Fase atual: **8, acessibilidade, qualidade e medição** (fases 1 a 7 concluídas). Veja o [plano de execução](#plano).
 
 ## O que tem aqui
 
@@ -80,6 +80,9 @@ Em produção, a API conecta sempre com um usuário membro do papel `app_api`, n
 | `GET /credenciamento/eventos` | Eventos em que a pessoa é da equipe |
 | `GET /credenciamento/:slug/pacote` | Lista do evento e chaves públicas para o leitor offline (só equipe) |
 | `POST /credenciamento/:slug/checkins` | Envia a fila de check-ins (idempotente; o primeiro pelo horário vale) |
+| `GET /eventos/:slug/assistente` | Última versão do assistente guiado, com `ETag` |
+| `PUT /eventos/:slug/assistente` | Publica uma nova versão (organização; grafo validado) |
+| `POST /eventos/:slug/assistente/avaliacoes` | "Isso respondeu sua dúvida?", sem dados pessoais |
 
 Erros seguem o formato Problem Details (RFC 9457) com um `codigo` estável e uma mensagem pronta para a pessoa.
 

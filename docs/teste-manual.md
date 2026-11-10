@@ -38,6 +38,7 @@ Funciona em qualquer rede, inclusive Wi-Fi que isola os aparelhos, e sem descobr
 - **Erros:** e-mail sem domínio; código errado 5 vezes (o código é bloqueado); 4 pedidos de código seguidos (o quarto é recusado).
 - **Inscrição (fase 5):** "Ver eventos sem entrar" → Simulação Acessa Evento → Inscrever-se (o ingresso "Cortesia" sai por R$ 0,00). Cartão `4242 4242 4242 4242` aprova, `4000 0000 0000 0002` é recusado; Pix sempre aprova.
 - **Ingresso e credenciamento (fase 6):** dois aparelhos (ou um aparelho e duas contas). No do participante, a aba Ingresso mostra o QR, também em modo avião. No da equipe (`--equipe`), Ajuda → Credenciamento → Ler QR. Teste em modo avião: as leituras ficam "na fila" e sobem quando a internet volta. Leia o mesmo QR de novo: "Já entrou hoje". O QR vale até 2 dias depois do fim do evento.
+- **Assistente (fase 7):** Ajuda → Assistente do evento → Acessibilidade → Intérprete de Libras. Teste "Voltar" (a escolha anterior aparece marcada), "Não" em "Isso respondeu sua dúvida?" e o assistente em modo avião depois de abri-lo uma vez.
 - **Acessibilidade:** VoiceOver ou TalkBack, fonte do sistema no máximo, tema escuro.
 
 ## Pela API, sem o app
