@@ -60,4 +60,4 @@ Sugestão de protocolo mínimo: 5 participantes por perfil (leitor de tela, Libr
 
 ## Como citar
 
-Use o arquivo [`CITATION.cff`](../CITATION.cff) na raiz (o GitHub mostra "Cite this repository"). Ao usar o código, preserve a licença e cite os ADRs que fundamentarem sua decisão.
+Use o arquivo [`CITATION.cff`](../CITATION.cff) na raiz (o GitHub mostra "Cite this repository"). O código é [MIT](../LICENSE): pode ser usado, adaptado e redistribuído, mantendo o aviso de autoria. Ao partir dele, cite também os ADRs que fundamentarem suas decisões.

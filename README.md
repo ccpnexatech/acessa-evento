@@ -90,4 +90,8 @@ As 8 fases do MVP estão no código. Faltam a revisão manual com leitores de te
 
 Commits em [Conventional Commits](https://www.conventionalcommits.org/pt-br/v1.0.0/); o hook de push roda `npm run verify` e o CI repete. Decisão nova vira ADR. Tela nova entra na [auditoria de acessibilidade](apps/mobile/src/testes/acessibilidade.test.tsx).
 
-Feito por [CCP NexaTech](https://github.com/ccpnexatech), em Fortaleza.
+## Licença
+
+[MIT](LICENSE): use, estude, modifique e redistribua, mantendo o aviso de autoria. Em trabalho acadêmico, cite pelo [`CITATION.cff`](CITATION.cff).
+
+Feito por Caio César Passos Viana Ponte ([CCP NexaTech](https://github.com/ccpnexatech)), em Fortaleza.

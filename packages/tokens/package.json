@@ -12,5 +12,6 @@
     "gerar": "node scripts/gerar.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "node scripts/gerar.ts --conferir && node --test \"src/**/*.test.ts\""
-  }
+  },
+  "license": "MIT"
 }

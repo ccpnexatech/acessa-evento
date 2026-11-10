@@ -2,7 +2,7 @@
   "name": "acessa-evento",
   "private": true,
   "description": "App de eventos acessível: inscrição, agenda, ingresso offline e credenciamento.",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "type": "module",
   "engines": {
     "node": ">=22.18.0",

@@ -13,6 +13,7 @@ authors:
   - given-names: "Caio César Passos Viana"
     family-names: "Ponte"
     affiliation: "CCP NexaTech"
+license: MIT
 repository-code: "https://github.com/ccpnexatech/acessa-evento"
 version: "0.8.0"
 date-released: "2026-11-10"
