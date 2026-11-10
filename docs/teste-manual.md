@@ -27,7 +27,8 @@ Funciona em qualquer rede, inclusive Wi-Fi que isola os aparelhos, e sem descobr
 | `npm run dev -- --lan` | Rede local sem isolamento: mais rápido, sem túnel. O IP é descoberto sozinho. |
 | `npm run dev -- --sem-app` | Só banco e API (com link público), para testar com curl ou Bruno. |
 | `npm run dev -- --resetar` | Começa do zero: apaga o banco e as chaves de desenvolvimento. |
-| `npm run dev -- --equipe voce@exemplo.com.br` | Dá ao e-mail o papel de credenciamento no COCAL 2026: aparece "Credenciamento" em Ajuda. |
+| `npm run dev -- --equipe voce@exemplo.com.br` | Dá ao e-mail o papel de credenciamento no evento do app: aparece "Credenciamento" em Ajuda. |
+| `npm run dev -- --evento cocal-2026` | Abre o app no COCAL 2026 de exemplo (julho). O padrão é `simulacao-2026`, vigente em novembro e dezembro de 2026, com sessões criadas para hoje, amanhã e depois. |
 
 `Ctrl+C` encerra tudo; os dados continuam para a próxima vez.
 
@@ -35,7 +36,7 @@ Funciona em qualquer rede, inclusive Wi-Fi que isola os aparelhos, e sem descobr
 
 - **Caminho feliz:** e-mail → código (do terminal) → nome do crachá e aceite → "Olá, Seu Nome". Feche e abra o app: entra direto. "Sair" volta ao login.
 - **Erros:** e-mail sem domínio; código errado 5 vezes (o código é bloqueado); 4 pedidos de código seguidos (o quarto é recusado).
-- **Inscrição (fase 5):** "Ver eventos sem entrar" → COCAL 2026 → Inscrever-se. Cartão `4242 4242 4242 4242` aprova, `4000 0000 0000 0002` é recusado; Pix sempre aprova.
+- **Inscrição (fase 5):** "Ver eventos sem entrar" → Simulação Acessa Evento → Inscrever-se (o ingresso "Cortesia" sai por R$ 0,00). Cartão `4242 4242 4242 4242` aprova, `4000 0000 0000 0002` é recusado; Pix sempre aprova.
 - **Ingresso e credenciamento (fase 6):** dois aparelhos (ou um aparelho e duas contas). No do participante, a aba Ingresso mostra o QR, também em modo avião. No da equipe (`--equipe`), Ajuda → Credenciamento → Ler QR. Teste em modo avião: as leituras ficam "na fila" e sobem quando a internet volta. Leia o mesmo QR de novo: "Já entrou hoje". O QR vale até 2 dias depois do fim do evento.
 - **Acessibilidade:** VoiceOver ou TalkBack, fonte do sistema no máximo, tema escuro.
 

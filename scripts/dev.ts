@@ -6,8 +6,10 @@
  *   --lan      sem túnel: usa o IP da rede local (mais rápido, exige rede sem isolamento)
  *   --sem-app  só banco, API e link público da API (para testar com curl ou Bruno)
  *   --resetar  apaga o banco e as chaves de desenvolvimento antes de subir
- *   --equipe <email>  dá ao e-mail o papel de credenciamento no COCAL 2026
- *                     (abre o leitor de QR no app; a conta é criada se não existir)
+ *   --equipe <email>  dá ao e-mail o papel de credenciamento no evento do app
+ *                     (abre o leitor de QR; a conta é criada se não existir)
+ *   --evento <slug>   evento que o app abre (padrão: simulacao-2026, vigente em
+ *                     nov e dez de 2026; use cocal-2026 para o exemplo de julho)
  *
  * Tudo o que é gerado fica em .dev/ (fora do git): chaves, senha do usuário
  * da API, dados do banco local e o binário do cloudflared.
@@ -32,6 +34,11 @@ const CONTEINER = 'acessa-evento-dev-pg';
 const argumentos = process.argv.slice(2);
 const opcoes = new Set(argumentos);
 const emailEquipe = argumentos[argumentos.indexOf('--equipe') + 1];
+const eventoApp = opcoes.has('--evento') ? argumentos[argumentos.indexOf('--evento') + 1] ?? '' : 'simulacao-2026';
+if (!/^[a-z0-9-]{3,60}$/.test(eventoApp)) {
+  process.stderr.write('Use --evento seguido do slug, por exemplo: npm run dev -- --evento cocal-2026\n');
+  process.exit(1);
+}
 
 const filhos: ChildProcess[] = [];
 let pararBanco: () => void = () => undefined;
@@ -178,7 +185,7 @@ async function prepararBanco(urlDono: string, s: Segredos): Promise<string> {
   }
   ok('Migrações aplicadas, evento COCAL 2026 criado e usuário da API pronto');
   if (emailEquipe && !emailEquipe.startsWith('--')) {
-    const r = spawnSync(process.execPath, ['src/main/papel.ts', emailEquipe, 'credenciamento', 'cocal-2026'], {
+    const r = spawnSync(process.execPath, ['src/main/papel.ts', emailEquipe, 'credenciamento', eventoApp], {
       cwd: API, encoding: 'utf8',
       env: { ...process.env, DATABASE_URL_MIGRACAO: urlDono, CHAVES_CIFRA: s.chavesCifra, CHAVE_INDICE: s.chaveIndice },
     });
@@ -339,7 +346,7 @@ if (opcoes.has('--sem-app')) {
   const expo = spawn('npx', ['expo', 'start', '--clear', '--port', '8081', ...(opcoes.has('--lan') ? ['--lan'] : [])], {
     cwd: MOBILE,
     stdio: 'inherit',
-    env: { ...process.env, ...ambienteExpo, EXPO_PUBLIC_API_URL: urlPublicaApi },
+    env: { ...process.env, ...ambienteExpo, EXPO_PUBLIC_API_URL: urlPublicaApi, EXPO_PUBLIC_EVENTO: eventoApp },
     shell: process.platform === 'win32',
   });
   filhos.push(expo);
