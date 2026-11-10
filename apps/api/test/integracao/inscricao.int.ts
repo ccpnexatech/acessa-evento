@@ -74,7 +74,7 @@ function inscrever(token: string, chave: string, corpo: unknown) {
 
 test('evento público: lista com filtro de Libras, tipos com esgotado e destaques da programação', async () => {
   const lista = (await (await fetch(`${base}/eventos?recurso=libras`)).json()) as { eventos: { slug: string; recursosOferecidos: string[] }[] };
-  assert.deepEqual(lista.eventos.map((e) => e.slug), ['cocal-2026']);
+  assert.deepEqual(lista.eventos.map((e) => e.slug), ['cocal-2026', 'simulacao-2026']);
   await b.dono.query("insert into evento (slug, nome, inicio, fim, local, publicado, recursos_oferecidos) values ('sem-libras', 'Sem Libras', '2026-09-01', '2026-09-02', 'X', true, '{legenda}')");
   const comLibras = (await (await fetch(`${base}/eventos?recurso=libras`)).json()) as { eventos: { slug: string }[] };
   assert.ok(!comLibras.eventos.some((e) => e.slug === 'sem-libras'));
