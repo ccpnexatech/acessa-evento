@@ -8,6 +8,13 @@ Acessibilidade aqui é regra de engenharia, não etapa final. Este documento diz
 - **Lei Brasileira de Inclusão** ([Lei 13.146/2015](https://planalto.gov.br/ccivil_03/_Ato2015-2018/2015/Lei/L13146.htm)): acessibilidade como direito, barreiras atitudinais e de comunicação, lugares reservados em auditórios (art. 44).
 - **Manual de Acessibilidade em Eventos Presenciais** ([Ministério dos Direitos Humanos e da Cidadania, 2ª ed.](https://www.gov.br/mdh/pt-br/navegue-por-temas/pessoa-com-deficiencia/publicacoes/manual-de-acessibilidade-em-eventos-presenciais/1Manual_Acessibilidade_Eventos_defesoeleitoralv21.pdf)): perguntar na inscrição o recurso necessário, intérprete visível, lugares para quem usa Libras em frente ao intérprete, audiodescrição com receptor e fone. Várias telas do app nasceram dessas recomendações.
 
+<p align="center">
+  <img src="imagens/05-acessibilidade.png" width="230" alt="Passo da inscrição Precisa de algum recurso, com Intérprete de Libras marcado e as outras opções explicadas.">
+  &nbsp;
+  <img src="imagens/14-pode-entrar.png" width="230" alt="Credenciamento: Pode entrar, com o aviso Precisa de intérprete de Libras e a orientação de onde indicar o lugar.">
+</p>
+<p align="center"><sub>O recurso pedido na inscrição chega à equipe no momento do check-in.</sub></p>
+
 ## Os 8 recursos cobertos
 
 | Recurso | No app | Como é verificado |
@@ -20,6 +27,8 @@ Acessibilidade aqui é regra de engenharia, não etapa final. Este documento diz
 | Fonte em 200% | Nenhum texto com limite de linhas ou de escala; componentes com altura mínima, não fixa | Teste estático + revisão manual |
 | Reduzir movimento | O app não tem animações | Teste estático que impede `Animated` e `LayoutAnimation` |
 | Leitor de tela | Papel, nome e estado em todo controle; anúncios de mudança (sem internet, passo da inscrição, resultado do check-in) | Auditoria automática + revisão manual |
+
+<img src="imagens/comparacao-contraste.png" width="520" alt="Agenda no tema padrão e no alto contraste, lado a lado.">
 
 ## Como é provado: quatro camadas
 
@@ -44,6 +53,7 @@ E, acima das quatro, o que nenhuma delas substitui: **teste com pessoas com defi
 - **Um cartão, uma frase.** O cartão da sessão é um botão só, lido como "Abertura. 09:00 às 10:00, Auditório. Acontecendo agora". A estrela de favorito é um botão à parte, "Favoritar Abertura", com estado "marcado".
 - **Cor nunca sozinha.** Filtro ligado ganha "✓"; ingresso esgotado aparece riscado **e** com a palavra "Esgotado"; "Agora" é um selo com texto.
 - **Anunciar o que muda sem mudar de tela.** Perda de internet, passo da inscrição e resultado do check-in são falados (`announceForAccessibility`; região viva no Android).
+- **Cartão que não some.** No alto contraste, cartão e fundo são brancos; o cartão ganha contorno preto (`contornoCartao`). Achado olhando as capturas lado a lado, não por teste.
 - **Anel de foco de 3 pt** em todo controle, para teclado externo e switch, sem deslocar o layout (`outline`). O componente [`Tocavel`](../apps/mobile/src/shared/ui/Tocavel.tsx) é o único `Pressable` do app.
 - **Login sem senha.** Código de 6 números por e-mail: nada para memorizar (WCAG 2.2, critério 3.3.8, autenticação acessível).
 - **Dado de acessibilidade é sensível.** Opcional, só a organização vê, apagado 30 dias depois do evento.

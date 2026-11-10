@@ -23,6 +23,8 @@ Um app que acompanha a pessoa do começo ao fim do evento e trata acessibilidade
 | Credenciamento | A equipe lê o QR sem internet e já vê "Precisa de intérprete de Libras" e onde indicar | A equipe, que passa a saber antes de a pessoa precisar explicar |
 | Dúvidas | Assistente com respostas revisadas pela organização, uma pergunta por tela, funciona offline | Quem não quer ou não consegue enfrentar uma fila de atendimento |
 
+Veja cada momento em [telas e fluxos](telas.md).
+
 ## Para quem foi pensado
 
 As decisões partem de pessoas, não de telas:

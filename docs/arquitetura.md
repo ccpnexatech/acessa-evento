@@ -83,6 +83,14 @@ sequenceDiagram
   B-->>A: situação calculada: o primeiro pelo horário vale
 ```
 
+<p align="center">
+  <img src="imagens/09-ingresso.png" width="200" alt="Ingresso com QR no celular do participante.">
+  &nbsp;
+  <img src="imagens/14-pode-entrar.png" width="200" alt="Pode entrar no celular da equipe.">
+  &nbsp;
+  <img src="imagens/15-ja-entrou.png" width="200" alt="Já entrou hoje no celular da equipe, com hora e portão do primeiro check-in.">
+</p>
+
 - O QR tem só ids e validade. Nome e acessibilidade ficam na lista da equipe, não num código que qualquer câmera lê.
 - A API assina com o crypto nativo do Node; o app confere com `@noble/curves`. Um **vetor de teste idêntico** nos dois lados impede que os formatos se desencontrem.
 - O banco não guarda "válido" ou "repetido": calcula pela ordem de horário. Dois portões offline chegam ao mesmo relatório em qualquer ordem de envio.

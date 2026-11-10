@@ -5,7 +5,11 @@ Inscrição, agenda, ingresso que funciona sem internet, check-in por QR e um as
 
 [![verificar](https://github.com/ccpnexatech/acessa-evento/actions/workflows/verificar.yml/badge.svg)](https://github.com/ccpnexatech/acessa-evento/actions/workflows/verificar.yml)
 
-<!-- capturas: as imagens abaixo vêm do emulador Android (docs/imagens) -->
+<p align="center">
+  <img src="docs/imagens/capa.png" width="720" alt="Três telas do app lado a lado. Agenda com o atalho do ingresso no topo, filtros de Libras, Legenda e Audiodescrição e a sessão de agora com selos de Libras e Legenda. Ingresso com o QR, o tipo Participante e o aviso Disponível sem internet. Credenciamento com o resultado Pode entrar e o aviso Precisa de intérprete de Libras, com a orientação de onde indicar o lugar.">
+</p>
+
+<p align="center"><a href="docs/telas.md">Ver todas as telas e fluxos</a></p>
 
 ## Por que existe
 
@@ -20,6 +24,12 @@ Este projeto mostra, com código testado, como tirar essas barreiras do caminho.
 | **Antes** | Encontra eventos "Com Libras", inscreve-se e diz, se quiser, que recurso precisa | Sabe quem pediu intérprete, legenda, audiodescrição ou acesso sem degraus |
 | **No dia** | Vê na agenda só as sessões que consegue acompanhar; mostra o QR mesmo sem internet | Lê o QR sem internet e ouve "Pode entrar, precisa de intérprete de Libras" |
 | **Dúvidas** | Assistente com respostas da organização, uma pergunta por tela, offline | Publica e corrige respostas; vê quais não ajudaram, sem saber quem perguntou |
+
+<p align="center">
+  <img src="docs/imagens/fluxo-inscricao.gif" width="260" alt="Animação da inscrição: lista de eventos com filtro Com Libras, escolha do ingresso com um lote esgotado riscado, pedido de intérprete de Libras, pagamento em ambiente de teste e a confirmação Você está no evento.">
+  &nbsp;
+  <img src="docs/imagens/fluxo-assistente.gif" width="260" alt="Animação do assistente: pergunta 1 de 2, Acessibilidade, Intérprete de Libras, a resposta revisada pela organização e a pergunta Isso respondeu sua dúvida.">
+</p>
 
 ## Como é feito
 
@@ -65,7 +75,7 @@ Como cada número foi medido, e o que ainda falta medir, em [impacto](docs/impac
 
 | Para | Leia |
 | --- | --- |
-| Entender o problema e a proposta, sem código | [Visão geral](docs/visao-geral.md) |
+| Entender o problema e a proposta, sem código | [Visão geral](docs/visao-geral.md) · [Telas e fluxos](docs/telas.md) |
 | Ver como as peças se encaixam | [Arquitetura](docs/arquitetura.md) · [API](docs/api.md) · [ADRs](docs/adr/README.md) |
 | Saber o que o app garante em acessibilidade | [Acessibilidade](docs/acessibilidade.md) · [Revisão manual](docs/acessibilidade-revisao-manual.md) |
 | Estudar, ensinar ou fazer um TCC | [Guia de estudo](docs/estudo.md) · [Referências](docs/referencias.md) |
