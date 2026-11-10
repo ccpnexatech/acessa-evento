@@ -53,12 +53,14 @@ function useContrasteDoSistema(): boolean {
 interface Props {
   /** Força o alto contraste (testes e telas de demonstração). */
   readonly altoContraste?: boolean;
+  /** Força um tema inteiro (auditoria de acessibilidade nos 3 temas). */
+  readonly temaForcado?: Tema;
   /** Onde guardar a escolha; sem ele, a escolha vale só até fechar o app. */
   readonly cofre?: Cofre;
   readonly children: ReactNode;
 }
 
-export function TemaProvider({ altoContraste, cofre, children }: Props) {
+export function TemaProvider({ altoContraste, temaForcado, cofre, children }: Props) {
   const esquema = useColorScheme();
   const sistema = useContrasteDoSistema();
   const [contraste, setContraste] = useState<PreferenciaContraste>('sistema');
@@ -80,9 +82,9 @@ export function TemaProvider({ altoContraste, cofre, children }: Props) {
   }, [cofre]);
 
   const valor = useMemo<ValorTema>(() => {
-    const tema = resolverTema(esquema, altoContraste ?? contrasteAtivo(contraste, sistema));
+    const tema = temaForcado ?? resolverTema(esquema, altoContraste ?? contrasteAtivo(contraste, sistema));
     return { tema, cores: cores[tema], contraste, definirContraste };
-  }, [esquema, altoContraste, contraste, sistema, definirContraste]);
+  }, [esquema, altoContraste, temaForcado, contraste, sistema, definirContraste]);
   return <ContextoTema.Provider value={valor}>{children}</ContextoTema.Provider>;
 }
 
