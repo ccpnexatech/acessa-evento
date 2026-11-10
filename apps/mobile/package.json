@@ -39,7 +39,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "jest --ci"
+    "test": "jest --ci",
+    "medir": "jest src/testes/medicao.test.ts"
   },
   "private": true,
   "jest": {
