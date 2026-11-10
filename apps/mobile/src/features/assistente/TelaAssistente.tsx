@@ -4,7 +4,8 @@
  * Funciona sem internet depois da primeira abertura.
  */
 import { useEffect, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { Tocavel } from '../../shared/ui/Tocavel';
 import { espaco, raio, tamanho } from '@acessa-evento/tokens';
 import { useTema } from '../../shared/tema/TemaProvider';
 import { ErroApi } from '../../shared/api/cliente';
@@ -160,7 +161,7 @@ function PerguntaAtual({ rotulo, texto }: { rotulo?: string; texto: string }) {
 function BotaoOpcao({ rotulo, selecionada, onPress }: { rotulo: string; selecionada: boolean; onPress: () => void }) {
   const { cores } = useTema();
   return (
-    <Pressable
+    <Tocavel
       accessibilityRole="button"
       accessibilityLabel={rotulo}
       accessibilityState={{ selected: selecionada }}
@@ -172,7 +173,7 @@ function BotaoOpcao({ rotulo, selecionada, onPress }: { rotulo: string; selecion
     >
       <Text style={[estilos.rotuloOpcao, { color: cores.ink900 }]}>{selecionada ? `✓ ${rotulo}` : rotulo}</Text>
       <Text style={[estilos.rotuloOpcao, { color: cores.ink600 }]}>›</Text>
-    </Pressable>
+    </Tocavel>
   );
 }
 

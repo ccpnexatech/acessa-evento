@@ -3,7 +3,7 @@
  * Pegam na escrita o que o leitor de tela não perdoa: toque sem papel ou sem nome,
  * campo sem rótulo e imagem sem descrição.
  */
-const TOQUES = new Set(['Pressable', 'TouchableOpacity', 'TouchableHighlight', 'TouchableWithoutFeedback']);
+const TOQUES = new Set(['Pressable', 'Tocavel', 'TouchableOpacity', 'TouchableHighlight', 'TouchableWithoutFeedback']);
 
 const nome = (el) => (el.name.type === 'JSXIdentifier' ? el.name.name : null);
 const atributo = (el, ...nomes) => el.attributes.find((a) => a.type === 'JSXAttribute' && nomes.includes(a.name.name));

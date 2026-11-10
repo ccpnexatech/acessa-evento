@@ -5,7 +5,8 @@
  */
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { AccessibilityInfo, ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Tocavel } from './Tocavel';
 import type { TextInputProps } from 'react-native';
 import { espaco, raio, tamanho } from '@acessa-evento/tokens';
 import { useTema } from '../tema/TemaProvider';
@@ -43,7 +44,7 @@ export function Botao({ rotulo, onPress, variante = 'primario', carregando = fal
   const fundo = variante === 'primario' ? cores.primary600 : variante === 'secundario' ? cores.primary100 : 'transparent';
   const texto = variante === 'primario' ? cores.onPrimary : variante === 'secundario' ? cores.primary700 : cores.primary600;
   return (
-    <Pressable
+    <Tocavel
       accessibilityRole="button"
       accessibilityState={{ disabled: inativo, busy: carregando }}
       disabled={inativo}
@@ -58,7 +59,7 @@ export function Botao({ rotulo, onPress, variante = 'primario', carregando = fal
       <Text style={[estilos.botaoTexto, { color: inativo && variante !== 'texto' ? cores.ink600 : texto }]}>
         {carregando ? (rotuloCarregando ?? rotulo) : rotulo}
       </Text>
-    </Pressable>
+    </Tocavel>
   );
 }
 
@@ -114,7 +115,7 @@ export function CaixaMarcar({ rotulo, dica, marcado, onMudar, erro }: { rotulo: 
   const { cores } = useTema();
   return (
     <View>
-      <Pressable
+      <Tocavel
         accessibilityRole="checkbox"
         accessibilityState={{ checked: marcado }}
         accessibilityLabel={rotulo}
@@ -134,7 +135,7 @@ export function CaixaMarcar({ rotulo, dica, marcado, onMudar, erro }: { rotulo: 
           <Text style={[estilos.paragrafo, { color: cores.ink900 }]}>{rotulo}</Text>
           {dica ? <Text style={[estilos.dicaOpcao, { color: cores.ink600 }]}>{dica}</Text> : null}
         </View>
-      </Pressable>
+      </Tocavel>
       <MensagemErro texto={erro ?? null} />
     </View>
   );
@@ -158,7 +159,7 @@ export function OpcaoRadio({ rotulo, dica, valor, marcado, desabilitado = false,
   const cor = desabilitado ? cores.ink600 : cores.ink900;
   const nome = [rotulo, valor, desabilitado && motivo ? motivo : null].filter(Boolean).join(', ');
   return (
-    <Pressable
+    <Tocavel
       accessibilityRole="radio"
       accessibilityState={{ checked: marcado, disabled: desabilitado }}
       accessibilityLabel={nome}
@@ -182,7 +183,7 @@ export function OpcaoRadio({ rotulo, dica, valor, marcado, desabilitado = false,
         {desabilitado && motivo ? <Text style={[estilos.opcaoRotulo, { color: cores.ink900 }]}>{motivo}</Text> : null}
       </View>
       {valor ? <Text style={[estilos.opcaoRotulo, { color: cor, textDecorationLine: desabilitado ? 'line-through' : 'none' }]}>{valor}</Text> : null}
-    </Pressable>
+    </Tocavel>
   );
 }
 

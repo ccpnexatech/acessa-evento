@@ -5,7 +5,8 @@
  */
 import { useEffect, useState } from 'react';
 import type { ComponentType } from 'react';
-import { AccessibilityInfo, ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Tocavel } from '../../shared/ui/Tocavel';
 import { espaco, raio, tamanho } from '@acessa-evento/tokens';
 import { useTema } from '../../shared/tema/TemaProvider';
 import { Botao, CaixaMarcar, CampoTexto, MensagemErro, Paragrafo, Tela } from '../../shared/ui/componentes';
@@ -208,7 +209,7 @@ function TelaBusca({ onEscolher, onVoltar, agora }: { onEscolher: (p: Participan
         </Text>
       ) : null}
       {achados.map((p) => (
-        <Pressable
+        <Tocavel
           key={p.ingressoId}
           accessibilityRole="button"
           accessibilityLabel={`${p.nome}, ${p.tipo}${p.checkin ? `, já entrou ${quando(p.checkin.em, agora)}` : ''}`}
@@ -217,7 +218,7 @@ function TelaBusca({ onEscolher, onVoltar, agora }: { onEscolher: (p: Participan
         >
           <Text style={[estilos.recursoTitulo, { color: cores.ink900 }]}>{p.nome}</Text>
           <Text style={[estilos.linha, { color: cores.ink600 }]}>{p.checkin ? `${p.tipo} · já entrou ${quando(p.checkin.em, agora)}` : p.tipo}</Text>
-        </Pressable>
+        </Tocavel>
       ))}
     </Tela>
   );
