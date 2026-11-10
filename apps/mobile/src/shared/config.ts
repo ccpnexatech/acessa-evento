@@ -13,3 +13,6 @@ export const API_URL = normalizarUrlApi(process.env.EXPO_PUBLIC_API_URL);
 
 /** Evento que o app abre (no MVP, um evento por build). */
 export const EVENTO_SLUG = (process.env.EXPO_PUBLIC_EVENTO ?? 'cocal-2026').trim();
+
+/** DSN do Sentry; vazio = erros não saem do aparelho (ADR 0024). */
+export const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN?.trim() || undefined;

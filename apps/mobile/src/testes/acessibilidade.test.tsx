@@ -32,6 +32,7 @@ import { ProvedorCredenciamento } from '../features/credenciamento/ProvedorCrede
 import { FluxoCredenciamento } from '../features/credenciamento/FluxoCredenciamento';
 import type { PropsLeitor } from '../features/credenciamento/FluxoCredenciamento';
 import { AGORA, CAIO, PACOTE, token } from '../features/credenciamento/fixtures';
+import { TelaErro } from '../shared/ui/TelaErro';
 import { auditar, descrever } from './auditoria';
 import type { No } from './auditoria';
 
@@ -79,6 +80,7 @@ interface Caso {
 }
 
 const CASOS: readonly Caso[] = [
+  { tela: 'Erro inesperado', montar: () => <TelaErro onTentarDeNovo={jest.fn()} />, preparar: () => screen.findByRole('button', { name: 'Tentar de novo' }) },
   { tela: 'Entrar', montar: () => <FluxoAcesso api={apiAcesso} sessao={sessaoEmMemoria()} onPronto={jest.fn()} onExplorar={jest.fn()} />, preparar: () => screen.findByRole('button', { name: 'Receber código' }) },
   {
     tela: 'Agenda',
