@@ -3,6 +3,8 @@
  * Cada tela é montada com dados de exemplo e auditada em claro, escuro e alto
  * contraste: nome e papel, alvo de 48 pt, contraste de texto e nenhum corte.
  */
+import fs from 'node:fs';
+import path from 'node:path';
 import type { ReactNode } from 'react';
 import { AccessibilityInfo, Pressable, Text } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
@@ -160,7 +162,10 @@ describe('auditoria de acessibilidade', () => {
   it('o auditor pega controle sem nome, alvo pequeno, contraste baixo e texto cortado', async () => {
     await render(
       <>
+        {/* Controles quebrados de propósito, para provar que o auditor os pega. */}
+        {/* eslint-disable-next-line acessibilidade/toque-com-nome */}
         <Pressable accessibilityRole="button" style={{ height: 30 }} onPress={jest.fn()} />
+        {/* eslint-disable-next-line acessibilidade/toque-com-papel */}
         <Pressable onPress={jest.fn()} style={{ minHeight: 48 }}><Text>Sem papel</Text></Pressable>
         <Text style={{ color: '#999999', fontSize: 16 }}>Cinza claro</Text>
         <Text numberOfLines={1} style={{ color: '#000000' }}>Título cortado</Text>
@@ -173,8 +178,6 @@ describe('auditoria de acessibilidade', () => {
 
 describe('fonte em 200% e movimento', () => {
   it('nenhum texto do app limita linhas nem a escala da fonte', () => {
-    const fs = jest.requireActual<typeof import('node:fs')>('node:fs');
-    const path = jest.requireActual<typeof import('node:path')>('node:path');
     const raiz = path.join(__dirname, '..');
     const arquivos: string[] = [];
     const andar = (d: string) => {
