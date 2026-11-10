@@ -37,6 +37,7 @@ function Rotas() {
       </Stack.Protected>
       <Stack.Screen name="eventos" />
       <Stack.Screen name="evento/[slug]" />
+      <Stack.Screen name="assistente" />
     </Stack>
   );
   if (!logado) return pilha;

@@ -27,4 +27,11 @@ describe('TelaAjuda', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Credenciamento' }));
     expect(onCredenciamento).toHaveBeenCalled();
   });
+
+  it('abre o assistente do evento', async () => {
+    const onAssistente = jest.fn();
+    await render(<TemaProvider><TelaAjuda nome="Ana" onSair={jest.fn()} onAssistente={onAssistente} /></TemaProvider>);
+    await fireEvent.press(screen.getByRole('button', { name: 'Assistente do evento' }));
+    expect(onAssistente).toHaveBeenCalled();
+  });
 });

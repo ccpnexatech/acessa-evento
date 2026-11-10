@@ -14,6 +14,7 @@ export default function Ajuda() {
       nome={nome}
       onSair={() => void sair()}
       onVerEventos={() => router.push('/eventos')}
+      onAssistente={() => router.push('/assistente')}
       {...(equipe.dados?.length ? { onCredenciamento: () => router.push('/credenciamento') } : {})}
     />
   );
