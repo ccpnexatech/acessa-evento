@@ -29,3 +29,4 @@
 | 0025 | [Organização acima do evento, vários papéis por pessoa e convite](0025-organizacao-acima-do-evento-e-varios-papeis.md) | Aceita |
 | 0026 | [Credencial por categoria e regras de zona fora do QR](0026-credencial-e-regras-de-zona-fora-do-qr.md) | Aceita |
 | 0027 | [Meia-entrada declarada, sem guardar documento, e avisos por categoria](0027-meia-entrada-declarada-e-avisos-por-categoria.md) | Aceita |
+| 0028 | [Feira com estande reservado no banco, nível derivado e contrato que libera](0028-feira-nivel-derivado-e-contrato-que-libera.md) | Aceita |
