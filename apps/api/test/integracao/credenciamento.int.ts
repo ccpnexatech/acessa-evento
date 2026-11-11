@@ -138,14 +138,15 @@ test('RLS: equipe não insere check-in em nome de outro membro nem em evento sem
     tx.consultar("insert into checkin (id, ingresso_id, evento_id, equipe_id, portao, metodo, feito_em) values ($1, $2, $3, $4, 'P', 'qr', now())", [randomUUID(), ingressoId, eventoId, outra])), /row-level security/);
 });
 
-test('CLI de papel: cria a conta se preciso e é idempotente', async () => {
+test('CLI de papel: cria a conta se preciso, acumula papéis e é idempotente', async () => {
   const { darPapel } = await import('../../src/main/papel.ts');
   const { CifradorAesGcm } = await import('../../src/shared/cripto/aes-gcm.ts');
   const cifrador = new CifradorAesGcm({ cifra: new Map([[1, randomBytes(32)]]), atual: 1, indice: randomBytes(32) });
   assert.equal(await darPapel(b.dono, cifrador, 'nova@exemplo.com.br', 'credenciamento', 'cocal-2026'), 'criada');
   assert.equal(await darPapel(b.dono, cifrador, 'Nova@Exemplo.com.br', 'admin', 'cocal-2026'), 'existente');
-  const { rows } = await b.dono.query("select papel from membro_organizacao m join pessoa p on p.id = m.pessoa_id where p.email_hash = $1", [cifrador.indice('nova@exemplo.com.br', 'pessoa.email')]);
-  assert.deepEqual(rows, [{ papel: 'admin' }]);
+  assert.equal(await darPapel(b.dono, cifrador, 'nova@exemplo.com.br', 'admin', 'cocal-2026'), 'existente');
+  const { rows } = await b.dono.query("select papel from membro_organizacao m join pessoa p on p.id = m.pessoa_id where p.email_hash = $1 order by papel", [cifrador.indice('nova@exemplo.com.br', 'pessoa.email')]);
+  assert.deepEqual(rows, [{ papel: 'admin' }, { papel: 'credenciamento' }]);
   await assert.rejects(darPapel(b.dono, cifrador, 'x@exemplo.com.br', 'chefe', 'cocal-2026'), /Papel inválido/);
   await assert.rejects(darPapel(b.dono, cifrador, 'x@exemplo.com.br', 'admin', 'nao-existe'), /não encontrado/);
 });

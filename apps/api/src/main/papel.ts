@@ -1,6 +1,8 @@
 /**
  * CLI: dá um papel de equipe a um e-mail num evento. Se a conta ainda não
  * existe, cria (a pessoa completa o cadastro no primeiro login).
+ * Uma pessoa pode ter vários papéis no mesmo evento (ADR 0025): rodar de novo
+ * com outro papel acrescenta, não troca. Pela tela, o caminho é o convite.
  *
  * Uso: DATABASE_URL_MIGRACAO=... CHAVES_CIFRA=... CHAVE_INDICE=... \
  *      node src/main/papel.ts <email> <papel> <slug-do-evento>
@@ -13,7 +15,7 @@ import { CifradorAesGcm, lerChaves } from '../shared/cripto/aes-gcm.ts';
 import { validarEmail } from '../modules/conta/domain/regras.ts';
 import { CONTEXTO } from '../modules/conta/application/acesso.ts';
 
-const PAPEIS = ['admin', 'conteudo', 'credenciamento', 'financeiro'];
+const PAPEIS = ['admin', 'conteudo', 'credenciamento', 'financeiro', 'comercial', 'comunicacao', 'operacao', 'acessibilidade'];
 
 export async function darPapel(cliente: pg.Client, cifrador: CifradorAesGcm, emailBruto: string, papel: string, slug: string): Promise<'criada' | 'existente'> {
   if (!PAPEIS.includes(papel)) throw new Error(`Papel inválido. Use: ${PAPEIS.join(', ')}.`);
@@ -29,7 +31,7 @@ export async function darPapel(cliente: pg.Client, cifrador: CifradorAesGcm, ema
     pessoa = { id };
   }
   await cliente.query(
-    'insert into membro_organizacao (evento_id, pessoa_id, papel) values ($1, $2, $3) on conflict (evento_id, pessoa_id) do update set papel = excluded.papel',
+    'insert into membro_organizacao (evento_id, pessoa_id, papel) values ($1, $2, $3) on conflict (evento_id, pessoa_id, papel) do nothing',
     [evento.id, pessoa.id, papel]);
   return situacao;
 }
@@ -45,7 +47,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   try {
     await cliente.connect();
     const r = await darPapel(cliente, new CifradorAesGcm(lerChaves(process.env)), email, papel, slug);
-    process.stdout.write(`${email} agora é ${papel} em ${slug} (conta ${r}).\n`);
+    process.stdout.write(`${email} agora tem o papel ${papel} em ${slug} (conta ${r}).\n`);
   } catch (e) {
     process.stderr.write(`${(e as Error).message}\n`);
     process.exitCode = 1;

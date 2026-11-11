@@ -19,8 +19,9 @@ export function repositorioCredenciamento(banco: Banco): RepositorioCredenciamen
     eventosDaEquipe(pessoaId) {
       return banco.transacao({ pessoaId }, (tx) =>
         tx.consultar<EventoEquipe>(
-          `select ${CAMPOS_EVENTO} from evento e join membro_organizacao m on m.evento_id = e.id
-           where m.pessoa_id = $1 and m.papel in ('admin', 'credenciamento') order by e.inicio`, [pessoaId]));
+          // tem_papel cobre vários papéis da mesma pessoa e o dono ou admin da organização (ADR 0025).
+          `select ${CAMPOS_EVENTO} from evento e
+           where tem_papel(e.id, array['admin', 'credenciamento']) order by e.inicio`));
     },
     participantes(pessoaId, eventoId) {
       return banco.transacao({ pessoaId }, async (tx) => {
