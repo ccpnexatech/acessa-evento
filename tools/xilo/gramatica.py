@@ -132,6 +132,23 @@ def gravar(peca, seed=2026, L=2048):
         p = Pincel(W, H, s); peca["tracos"](p, rng); img |= p.mascara()
     if peca.get("cortes"):
         p = Pincel(W, H, s); peca["cortes"](p, rng); img &= ~p.mascara()
+    if peca.get("fundo"):                                    # hachura de fundo, com respiro em volta de tudo que já é tinta
+        x0, y0, x1, y1 = peca["fundo"]; p = Pincel(W, H, s); y = y0 + 12
+        while y < y1 - 6:
+            x = x0 + rng.uniform(0, 12); fase = rng.uniform(0, 6.28)
+            while x < x1:
+                c = rng.uniform(50, 200)
+                xs = np.linspace(x, min(x + c, x1), 20)
+                sombra = 0.75 + 0.5 * (((x + c / 2) - x0) / (x1 - x0) * 0.5 + (y - y0) / (y1 - y0) * 0.5)
+                p.linha([(xx, y + 2.5 * math.sin(xx / 90 + fase)) for xx in xs], 4.6 * sombra, "v")
+                x += c + rng.uniform(6, 22)
+            y += 10.5
+        livre = ~ndi.binary_dilation(img, iterations=int(0.007 * L))
+        if peca.get("silhuetas"):                            # nada de hachura dentro das figuras, e um halo em volta
+            sil = render(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {vw} {vh}">{peca["silhuetas"]}</svg>', W, H)
+            sil = ndi.binary_fill_holes(ndi.binary_closing(sil, structure=disco(0.006 * L)))
+            livre &= ~ndi.binary_dilation(sil, structure=disco(0.011 * L))
+        img |= p.mascara() & livre
     img = deformar(img, L, rng, peca.get("deforma", 1.0))
     img = limpar(img, L)
     if peca.get("falhas", 1.0):

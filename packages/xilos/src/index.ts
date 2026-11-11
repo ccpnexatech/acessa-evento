@@ -27,7 +27,7 @@ export const xilos = {
   cheguei: {
     arquivo: 'cheguei.svg',
     familia: 'cena',
-    uso: 'Check-in confirmado e abertura do app, com fundo talhado.',
+    uso: 'Check-in confirmado, com fundo talhado.',
     alt: 'Três pessoas chegando a um evento sob bandeirolas: duas caminhando e uma em cadeira de rodas, acenando.',
   },
   chegueiMiniatura: {
@@ -35,6 +35,12 @@ export const xilos = {
     familia: 'cena',
     uso: 'A mesma cena em traço limpo, para tamanhos pequenos.',
     alt: 'Três pessoas chegando a um evento sob bandeirolas: duas caminhando e uma em cadeira de rodas, acenando.',
+  },
+  boasVindas: {
+    arquivo: 'boas-vindas.svg',
+    familia: 'cena',
+    uso: 'Abertura do app, antes de qualquer evento.',
+    alt: 'Três pessoas chegando sob bandeirolas: uma acenando, uma em cadeira de rodas acenando e uma cega, de óculos escuros e bengala.',
   },
   nadaPorAqui: {
     arquivo: 'nada-por-aqui.svg',

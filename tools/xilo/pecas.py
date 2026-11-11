@@ -253,6 +253,210 @@ def tudo_pronto():
     return dict(vb=(1000, 1000), svg=svg, cortes=cortes, falhas=1.0)
 
 
+# ---------- figuras próprias: corpo em formas, de três quartos, andando (inspiração: Open Peeps) ----------
+_ST = 'fill="none" stroke-linecap="round" stroke-linejoin="round"'
+
+
+class _Fig:
+    """Acumula as formas de uma figura. u cresce para onde ela olha, v para cima; medidas em frações de H."""
+    def __init__(self, x, chao, H, espelho=False, uid="f"):
+        self.x, self.chao, self.H, self.s, self.uid = x, chao, H, (-1 if espelho else 1), uid
+        self.ol = 0.016 * H; self.o = []
+
+    def P(self, u, v):
+        return (self.x + self.s * u * self.H, self.chao - v * self.H)
+
+    def membro(self, pts, larg, cor):
+        d = "M" + " L".join(f"{a:.1f} {b:.1f}" for a, b in (self.P(*q) for q in pts))
+        self.o.append(f'<path d="{d}" {_ST} stroke="#000" stroke-width="{larg * self.H:.1f}"/>')
+        if cor == "w":
+            self.o.append(f'<path d="{d}" {_ST} stroke="#fff" stroke-width="{larg * self.H - 2 * self.ol:.1f}"/>')
+
+    def linha(self, pts, larg):
+        d = "M" + " L".join(f"{a:.1f} {b:.1f}" for a, b in (self.P(*q) for q in pts))
+        self.o.append(f'<path d="{d}" {_ST} stroke="#000" stroke-width="{larg * self.H:.1f}"/>')
+
+    def disco(self, u, v, r, cor="b", borda=1.0):
+        cx, cy = self.P(u, v)
+        f = "#000" if cor == "b" else "#fff"
+        self.o.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r * self.H:.1f}" fill="{f}" stroke="#000" stroke-width="{self.ol * borda:.1f}"/>')
+
+    def elipse(self, u, v, rx, ry, cor="b", giro=0, borda=1.0):
+        cx, cy = self.P(u, v); f = "#000" if cor == "b" else "#fff"
+        self.o.append(f'<ellipse cx="{cx:.1f}" cy="{cy:.1f}" rx="{rx * self.H:.1f}" ry="{ry * self.H:.1f}" fill="{f}" stroke="#000" '
+                      f'stroke-width="{self.ol * borda:.1f}" transform="rotate({giro * self.s:.0f} {cx:.1f} {cy:.1f})"/>')
+
+    def tronco(self, A, c1, B, C, c2, D, cor):
+        q = lambda t: "{:.1f} {:.1f}".format(*self.P(*t))
+        d = f"M{q(A)} Q{q(c1)} {q(B)} L{q(C)} Q{q(c2)} {q(D)} Z"
+        f = "#000" if cor == "b" else "#fff"
+        self.o.append(f'<path d="{d}" fill="{f}" stroke="#000" stroke-width="{self.ol * 2:.1f}" stroke-linejoin="round"/>')
+        if cor == "w":                                    # sombra em hachura no lado oposto à luz
+            self.o.append(f'<clipPath id="c{self.uid}"><path d="{d}"/></clipPath><g clip-path="url(#c{self.uid})">')
+            (u0, v0), (u1, v1) = B, C
+            for k in range(6):
+                self.linha([(u0 + 0.02, v0 - 0.035 - 0.042 * k), (u0 - 0.10, v0 - 0.115 - 0.042 * k)], 0.011)
+            self.o.append("</g>")
+
+    def mao(self, u, v, aberta=False):
+        if not aberta:
+            self.disco(u, v, 0.036, "w"); return
+        for (a, b) in (((-0.030, 0.026), (-0.048, 0.082)), ((-0.010, 0.036), (-0.014, 0.100)),
+                       ((0.012, 0.036), (0.018, 0.098)), ((0.032, 0.026), (0.052, 0.080))):      # quatro dedos abertos
+            d = "M{:.1f} {:.1f} L{:.1f} {:.1f}".format(*self.P(u + a[0], v + a[1]), *self.P(u + b[0], v + b[1]))
+            self.o.append(f'<path d="{d}" {_ST} stroke="#000" stroke-width="{0.036 * self.H:.1f}"/>')
+            self.o.append(f'<path d="{d}" {_ST} stroke="#fff" stroke-width="{0.017 * self.H:.1f}"/>')
+        self.disco(u, v, 0.043, "w")
+
+    def cabeca(self, cabelo, oculos=False, dv=0.0, du=0.0):
+        g = lambda u, v: (u + du, v + dv)
+        self.membro([g(0.022, 0.80), g(0.016, 0.745)], 0.052, "w")           # pescoço
+        if cabelo == "longo":
+            pts = [g(-0.08, 0.95), g(-0.125, 0.71), g(-0.01, 0.69), g(0.01, 0.90)]
+            d = "M" + " L".join("{:.1f} {:.1f}".format(*self.P(*q)) for q in pts) + "Z"
+            self.o.append(f'<path d="{d}" fill="#000" stroke="#000" stroke-width="{self.ol * 3:.1f}" stroke-linejoin="round"/>')
+        if cabelo == "afro":
+            self.disco(*g(0.0, 0.905), 0.132)
+        else:
+            self.elipse(*g(0.012, 0.906), 0.094, 0.093)
+        if cabelo == "coque":
+            self.disco(*g(-0.07, 1.0), 0.046)
+        self.elipse(*g(0.052, 0.872), 0.064, 0.077, "w", borda=1.3)           # rosto, voltado para a frente
+        if oculos:
+            (x0, y0), (x1, y1) = self.P(*g(0.022, 0.905)), self.P(*g(0.122, 0.868))
+            self.o.append(f'<rect x="{min(x0, x1):.1f}" y="{y0:.1f}" width="{abs(x1 - x0):.1f}" height="{y1 - y0:.1f}" rx="{0.01 * self.H:.1f}" fill="#000"/>')
+            self.linha([g(0.03, 0.89), g(-0.02, 0.892)], 0.012)
+        else:
+            self.disco(*g(0.058, 0.886), 0.008); self.disco(*g(0.096, 0.886), 0.008)
+        self.linha([g(0.114, 0.872), g(0.129, 0.858), g(0.113, 0.852)], 0.011)   # nariz
+        q = lambda t: "{:.1f} {:.1f}".format(*self.P(*g(*t)))
+        self.o.append(f'<path d="M{q((0.05, 0.842))} Q{q((0.078, 0.82))} {q((0.104, 0.843))}" {_ST} stroke="#000" stroke-width="{self.ol * 0.8:.1f}"/>')
+
+    def svg(self):
+        return "".join(self.o)
+
+
+def _andando(x, chao, H, cabelo="curto", camisa="w", calca="b", braco="balanco", oculos=False, espelho=False, uid="a"):
+    f = _Fig(x, chao, H, espelho, uid)
+    f.membro([(-0.075, 0.70), (-0.15, 0.585), (-0.125, 0.47)], 0.07, camisa); f.mao(-0.122, 0.448)       # braço de trás
+    f.membro([(-0.02, 0.49), (-0.10, 0.27), (-0.19, 0.075)], 0.105, calca)                                # perna de trás
+    f.elipse(-0.172, 0.04, 0.078, 0.034, giro=24)
+    f.membro([(0.03, 0.49), (0.12, 0.27), (0.13, 0.055)], 0.105, calca)                                   # perna da frente
+    f.elipse(0.188, 0.03, 0.088, 0.034)
+    f.tronco((-0.10, 0.735), (0.0, 0.775), (0.115, 0.725), (0.105, 0.49), (0.01, 0.455), (-0.085, 0.50), camisa)
+    f.cabeca(cabelo, oculos)
+    if braco == "aceno":
+        f.membro([(0.085, 0.70), (0.19, 0.76), (0.215, 0.905)], 0.07, camisa); f.mao(0.22, 0.945, True)
+    elif braco == "bengala":
+        f.linha([(0.225, 0.51), (0.43, 0.0)], 0.018)
+        f.membro([(0.085, 0.70), (0.14, 0.585), (0.21, 0.52)], 0.07, camisa); f.mao(0.225, 0.51)
+    else:
+        f.membro([(0.085, 0.70), (0.15, 0.58), (0.215, 0.50)], 0.07, camisa); f.mao(0.232, 0.488)
+    return f.svg()
+
+
+def _sentada(x, chao, H, cabelo="longo", camisa="b", calca="b", espelho=False, uid="s"):
+    f = _Fig(x, chao, H, espelho, uid)
+    f.linha([(-0.13, 0.60), (-0.10, 0.30)], 0.03); f.linha([(-0.13, 0.60), (-0.21, 0.615)], 0.03)        # encosto e punho
+    f.membro([(-0.02, 0.34), (0.20, 0.345), (0.235, 0.11)], 0.105, calca)                                 # coxa e canela
+    f.elipse(0.288, 0.075, 0.084, 0.034); f.linha([(0.20, 0.04), (0.38, 0.04)], 0.022)                    # pé no apoio
+    f.tronco((-0.095, 0.555), (0.0, 0.59), (0.11, 0.545), (0.10, 0.31), (0.0, 0.28), (-0.09, 0.31), camisa)
+    wx, wy = f.P(-0.03, 0.205); R = 0.205 * H                                                             # roda grande
+    f.o.append(f'<circle cx="{wx:.1f}" cy="{wy:.1f}" r="{R:.1f}" fill="#fff" stroke="#000" stroke-width="{0.038 * H:.1f}"/>')
+    for i in range(5):
+        a = math.radians(90 + i * 72)
+        f.o.append(f'<path d="M{wx:.1f} {wy:.1f} L{wx + R * 0.86 * math.cos(a):.1f} {wy + R * 0.86 * math.sin(a):.1f}" {_ST} stroke="#000" stroke-width="{0.017 * H:.1f}"/>')
+    f.disco(-0.03, 0.205, 0.03)
+    cx, cy = f.P(0.255, 0.04)
+    f.o.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{0.036 * H:.1f}" fill="#fff" stroke="#000" stroke-width="{0.022 * H:.1f}"/>')
+    f.membro([(-0.06, 0.52), (-0.115, 0.42), (-0.04, 0.395)], 0.07, camisa); f.mao(-0.03, 0.392)          # mão no aro
+    f.cabeca(cabelo, dv=-0.19)
+    f.membro([(0.09, 0.52), (0.20, 0.585), (0.235, 0.725)], 0.07, camisa); f.mao(0.24, 0.768, True)       # aceno
+    return f.svg()
+
+
+def _varal(x0, x1, y, barriga, n, larg, alt):
+    corda = lambda x: y + barriga * 4 * ((x - x0) / (x1 - x0)) * (1 - (x - x0) / (x1 - x0))
+    svg = f'<path d="M{x0} {y} Q {(x0 + x1) / 2} {y + 2 * barriga} {x1} {y}" fill="none" stroke="#000" stroke-width="9" stroke-linecap="round"/>'
+    xs = [x0 + (x1 - x0) * (i + 0.5) / n for i in range(n)]
+    for i, x in enumerate(xs):
+        yy = corda(x) + 2
+        pts = [(x - larg / 2, yy), (x + larg / 2, yy), (x + (4 if i % 2 else -4), yy + alt)]
+        cor = PRETO if i % 2 == 0 else 'fill="#fff"'
+        svg += f'<polygon points="{_poli(pts)}" {cor} stroke="#000" stroke-width="9" stroke-linejoin="round"/>'
+    return svg, [(x, corda(x) + 2) for i, x in enumerate(xs) if i % 2 == 0]
+
+
+def _chao_cortes(p, rng, x0, x1, y0, n):
+    y = y0
+    for i in range(n):
+        x = x0 + rng.uniform(0, 30)
+        while x < x1 - 20:
+            c = rng.uniform(50, 170)
+            if rng.random() < 0.8:
+                p.linha([(x, y), (min(x + c, x1 - 10), y + rng.uniform(-2, 2))], 9, "u")
+            x += c + rng.uniform(18, 50)
+        y += 22 + i * 3
+
+
+# ---------- boas-vindas: três pessoas chegando, sem moldura ----------
+def boas_vindas():
+    chao, H = 800, 455
+    svg = f'<rect x="60" y="{chao}" width="880" height="96" rx="10" {PRETO}/>'
+    varal, pretas = _varal(60, 940, 105, 62, 9, 64, 84)
+    svg += varal
+    svg += _andando(215, chao + 6, H, cabelo="afro", camisa="w", calca="b", braco="aceno", uid="b1")
+    svg += _sentada(485, chao + 6, H, cabelo="longo", camisa="b", uid="b2")
+    svg += _andando(745, chao + 6, H, cabelo="coque", camisa="b", calca="w", braco="bengala", oculos=True, uid="b3")
+
+    def cortes(p, rng):
+        _chao_cortes(p, rng, 80, 920, chao + 34, 3)
+        for (x, yy) in pretas:
+            p.linha([(x - 11, yy + 14), (x - 4, yy + 46)], 8, "v")
+    return dict(vb=(1000, 1000), svg=svg, cortes=cortes, falhas=0.7)
+
+
+# ---------- cheguei, com figuras próprias: moldura, entrada com faixa, três pessoas chegando ----------
+def _cheguei(cheia):
+    chao, H = 838, 440
+    svg = f'<rect x="38" y="38" width="924" height="924" rx="8" fill="none" stroke="#000" stroke-width="20"/>'
+    svg += f'<rect x="46" y="{chao}" width="908" height="{954 - chao}" {PRETO}/>'
+    svg += f'<rect x="72" y="118" width="36" height="{chao - 118}" {PRETO}/><rect x="892" y="118" width="36" height="{chao - 118}" {PRETO}/>'
+    svg += '<path d="M66 132 Q500 104 934 132 L934 172 Q500 144 66 172Z" fill="#000"/>'      # faixa da entrada
+    v1, p1 = _varal(108, 892, 196, 34, 11, 48, 62); v2, p2 = _varal(108, 892, 276, 30, 13, 40, 52)
+    svg += v1 + v2
+    figs = (_andando(232, chao + 5, H, cabelo="afro", camisa="w", calca="b", uid="c1")
+            + _sentada(492, chao + 5, H, cabelo="longo", camisa="b", uid="c2")
+            + _andando(752, chao + 5, H, cabelo="coque", camisa="b", calca="b", uid="c3"))
+    svg += figs
+
+    def cortes(p, rng):
+        _chao_cortes(p, rng, 66, 934, chao + 30, 4)
+        for j in range(1, 32):                                          # zigue-zague da faixa
+            x = 66 + j * 27.1; t = (x - 66) / 868; yc = 152 - 28 * 4 * t * (1 - t) / 2 + 14 * 4 * t * (1 - t) * 0 - 14 * 4 * t * (1 - t) + 14 * 4 * t * (1 - t)
+            yc = 152 - 14 * 4 * t * (1 - t)
+            hh = 11 if j % 2 else -11
+            p.poligono([(x - 10, yc - hh), (x + 10, yc - hh), (x, yc + hh)])
+        for (x, yy) in p1 + p2:
+            p.linha([(x - 8, yy + 10), (x - 3, yy + 34)], 6, "v")
+        for px in (84, 96, 904, 916):                                   # veio dos postes
+            y = 200 + rng.uniform(0, 40)
+            while y < chao - 60:
+                c = rng.uniform(60, 150); p.linha([(px, y), (px + rng.uniform(-2, 2), y + c)], 6, "v"); y += c + rng.uniform(20, 50)
+    d = dict(vb=(1000, 1000), svg=svg, cortes=cortes, falhas=0.7)
+    if cheia:
+        d["fundo"] = (58, 58, 942, chao); d["silhuetas"] = figs + v1 + v2
+    return d
+
+
+def cheguei_cheia():
+    return _cheguei(True)
+
+
+def cheguei_miniatura():
+    return _cheguei(False)
+
+
 PECAS = {
     "faixa-bandeirolas": (bandeirolas, 1280, "Faixa de bandeirolas, divisória"),
     "ingresso": (ingresso, 1024, "Ingresso com picote e estrela"),
@@ -260,6 +464,9 @@ PECAS = {
     "sem-internet": (sem_internet, 1024, "Jangada parada no mar calmo, para quando falta internet"),
     "algo-deu-errado": (algo_deu_errado, 1024, "Pipa enroscada no fio, para erros"),
     "tudo-pronto": (tudo_pronto, 1024, "Sol nascendo sob bandeirolas, para confirmações"),
+    "boas-vindas": (boas_vindas, 1024, "Três pessoas chegando sob as bandeirolas, para a abertura do app"),
+    "cheguei": (cheguei_cheia, 1024, "Cheguei: três pessoas chegando ao evento, fundo talhado"),
+    "cheguei-miniatura": (cheguei_miniatura, 1024, "Cheguei: três pessoas chegando ao evento, traço limpo"),
 }
 
 

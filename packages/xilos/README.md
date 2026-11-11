@@ -8,8 +8,9 @@ Cada arquivo em `svg/` é um único traçado em `currentColor`. A gravura herda 
 
 | Peça | Família | Onde entra |
 | --- | --- | --- |
-| `cheguei.svg` | cena | Check-in confirmado e abertura do app, com fundo talhado |
+| `cheguei.svg` | cena | Check-in confirmado, com fundo talhado |
 | `cheguei-miniatura.svg` | cena | A mesma cena em traço limpo, para tamanhos pequenos |
+| `boas-vindas.svg` | cena | Abertura do app |
 | `nada-por-aqui.svg` | estado | Telas vazias |
 | `sem-internet.svg` | estado | Aviso de que o app está sem internet |
 | `algo-deu-errado.svg` | estado | Erros |
@@ -55,5 +56,8 @@ Para criar uma peça: escreva a receita em `tools/xilo/pecas.py` (desenho em SVG
 
 ## Origem e licenças
 
-- **Cheguei:** figuras do [Open Peeps](https://www.openpeeps.com/) de Pablo Stanley (CC0 1.0), via `react-peeps` 0.1.10 (MIT). Cenário, moldura, roda da cadeira e o efeito de xilo são desenho próprio em código. Os três scripts originais estão em `tools/xilo/cheguei/`; para rodar o `compose.py` faltam as figuras exportadas em `render/figs/`, que não estão no repositório.
-- **Demais peças:** desenho próprio em código, com a mesma gramática (ruído de borda de madeira, goiva afilada, falha de tinta), em `tools/xilo/gramatica.py`.
+Todas as peças são desenho próprio em código (CCP NEXATECH), sob a licença MIT do repositório. Nenhuma biblioteca de ilustração é usada, nem na geração nem no app.
+
+- **Figuras:** corpo em formas, de três quartos, andando ou sentadas, em `tools/xilo/pecas.py` (`_andando`, `_sentada`). A inspiração de pose e proporção vem do [Open Peeps](https://www.openpeeps.com/), de Pablo Stanley; nenhum traço dele é copiado.
+- **Gramática:** ruído de borda de madeira, goiva afilada, hachura de fundo com respiro e falha de tinta, em `tools/xilo/gramatica.py`.
+- **Primeira versão da Cheguei:** usava figuras do Open Peeps (CC0). Os três scripts daquela versão ficam em `tools/xilo/cheguei/` como origem da gramática, e os SVGs antigos continuam no histórico do git (commit `542da7b`).
