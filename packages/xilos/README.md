@@ -12,10 +12,20 @@ Cada arquivo em `svg/` é um único traçado em `currentColor`. A gravura herda 
 | `cheguei-miniatura.svg` | cena | A mesma cena em traço limpo, para tamanhos pequenos |
 | `nada-por-aqui.svg` | estado | Telas vazias |
 | `sem-internet.svg` | estado | Aviso de que o app está sem internet |
+| `algo-deu-errado.svg` | estado | Erros |
+| `tudo-pronto.svg` | estado | Confirmações |
 | `ingresso.svg` | objeto | Confirmação de inscrição e verso do bilhete |
 | `faixa-bandeirolas.svg` | objeto | Divisória entre blocos |
 | `simbolo-libras.svg` | símbolo | Selo de Libras |
 | `simbolo-ingresso.svg` | símbolo | Aba Ingresso |
+| `simbolo-legenda.svg` | símbolo | Selo de legenda |
+| `simbolo-audiodescricao.svg` | símbolo | Selo de audiodescrição |
+| `simbolo-sem-degraus.svg` | símbolo | Acesso sem degraus |
+| `simbolo-favorito.svg` | símbolo | Favoritar sessão |
+| `simbolo-aviso.svg` | símbolo | Avisos e permissão de notificações |
+| `simbolo-mapa.svg` | símbolo | Local, salas e estandes |
+| `simbolo-camera.svg` | símbolo | Permissão da câmera e leitor de QR |
+| `simbolo-privacidade.svg` | símbolo | Privacidade e dados |
 
 O uso e o texto alternativo de cada uma estão em [`src/index.ts`](src/index.ts).
 

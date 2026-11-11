@@ -72,6 +72,66 @@ export const xilos = {
     uso: 'Aba Ingresso na navegação, sempre com o rótulo.',
     alt: 'Ingresso',
   },
+  algoDeuErrado: {
+    arquivo: 'algo-deu-errado.svg',
+    familia: 'estado',
+    uso: 'Erros: algo falhou e a pessoa pode tentar de novo.',
+    alt: 'Uma pipa enroscada no fio de um poste.',
+  },
+  tudoPronto: {
+    arquivo: 'tudo-pronto.svg',
+    familia: 'estado',
+    uso: 'Confirmações: inscrição feita, evento publicado, contrato assinado.',
+    alt: 'O sol nascendo sob uma faixa de bandeirolas.',
+  },
+  simboloLegenda: {
+    arquivo: 'simbolo-legenda.svg',
+    familia: 'simbolo',
+    uso: 'Selo de legenda, sempre ao lado da palavra "Legenda".',
+    alt: 'Legenda',
+  },
+  simboloAudiodescricao: {
+    arquivo: 'simbolo-audiodescricao.svg',
+    familia: 'simbolo',
+    uso: 'Selo de audiodescrição, sempre ao lado da palavra "Audiodescrição".',
+    alt: 'Audiodescrição',
+  },
+  simboloSemDegraus: {
+    arquivo: 'simbolo-sem-degraus.svg',
+    familia: 'simbolo',
+    uso: 'Acesso sem degraus, sempre com o texto "Sem degraus" ou "Por elevador".',
+    alt: 'Acesso sem degraus',
+  },
+  simboloFavorito: {
+    arquivo: 'simbolo-favorito.svg',
+    familia: 'simbolo',
+    uso: 'Favoritar uma sessão. O botão leva o nome da sessão.',
+    alt: 'Favorito',
+  },
+  simboloAviso: {
+    arquivo: 'simbolo-aviso.svg',
+    familia: 'simbolo',
+    uso: 'Avisos da organização e pedido de permissão para notificações.',
+    alt: 'Avisos',
+  },
+  simboloMapa: {
+    arquivo: 'simbolo-mapa.svg',
+    familia: 'simbolo',
+    uso: 'Local do evento, salas e estandes.',
+    alt: 'Local',
+  },
+  simboloCamera: {
+    arquivo: 'simbolo-camera.svg',
+    familia: 'simbolo',
+    uso: 'Pedido de permissão da câmera e leitor de QR.',
+    alt: 'Câmera',
+  },
+  simboloPrivacidade: {
+    arquivo: 'simbolo-privacidade.svg',
+    familia: 'simbolo',
+    uso: 'Privacidade: o que o app guarda e apaga.',
+    alt: 'Privacidade',
+  },
 } as const satisfies Record<string, Xilo>;
 
 export type NomeXilo = keyof typeof xilos;

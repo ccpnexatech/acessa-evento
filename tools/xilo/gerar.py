@@ -20,7 +20,7 @@ VERSAO = "xilo 0.6.0 (gramatica.py, potracer)"
 so = sys.argv[1:]  # nomes para regerar; vazio = todos
 
 rel = json.load(open(os.path.join(RASCUNHO, "relatorio.json"))) if os.path.exists(os.path.join(RASCUNHO, "relatorio.json")) else {}
-for nome, (fn, largura, alt) in P.LOTE1.items():
+for nome, (fn, largura, alt) in P.PECAS.items():
     if so and nome not in so: continue
     t = time.time()
     img = G.gravar(fn())
@@ -43,10 +43,10 @@ def png(svg, cor, fundo, larg):
 
 # folha de contato: cada peça em tamanho grande (claro e escuro) e pequena
 TEMAS = [("#12201e", "#ffffff"), ("#eef4f3", "#0e1615")]
-nomes = list(P.LOTE1) + list(P.SIMBOLOS)
-folha = Image.new("RGB", (1700, 40 + 470 * len(P.LOTE1) + 200), "#cfd6d4")
+nomes = list(P.PECAS) + list(P.SIMBOLOS)
+folha = Image.new("RGB", (1700, 40 + 470 * len(P.PECAS) + 500), "#cfd6d4")
 d = ImageDraw.Draw(folha); y = 20
-for nome in P.LOTE1:
+for nome in P.PECAS:
     svg = open(os.path.join(SAIDA, nome + ".svg")).read()
     x = 20
     for cor, fundo in TEMAS:
@@ -59,9 +59,10 @@ for nome in P.LOTE1:
 x = 20
 for nome in P.SIMBOLOS:
     svg = open(os.path.join(SAIDA, nome + ".svg")).read()
-    for larg in (160, 48, 24):
+    if x > 1400: x = 20; y += 120
+    for larg in (96, 24):
         for cor, fundo in TEMAS:
-            im = png(svg, cor, fundo, larg); folha.paste(im, (x, y)); x += larg + 10
-    x += 30
-folha = folha.crop((0, 0, 1700, y + 180))
+            im = png(svg, cor, fundo, larg); folha.paste(im, (x, y)); x += larg + 8
+    x += 28
+folha = folha.crop((0, 0, 1700, y + 120))
 folha.save(os.path.join(RASCUNHO, "folha-de-contato.png"))

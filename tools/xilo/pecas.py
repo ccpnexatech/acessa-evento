@@ -178,11 +178,88 @@ def sem_internet():
     return dict(vb=(1000, 1000), svg=svg, cortes=cortes, tracos=tracos, falhas=0.8)
 
 
-LOTE1 = {
+# ---------- algo deu errado: pipa enroscada no fio ----------
+def algo_deu_errado():
+    st = 'fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"'
+    svg = ""
+    # poste com cruzeta e dois fios
+    svg += f'<rect x="792" y="170" width="46" height="716" rx="6" {PRETO}/><rect x="700" y="236" width="230" height="24" rx="6" {PRETO}/>'
+    svg += f'<path d="M712 250 Q 400 372 60 296" {st} stroke-width="9"/><path d="M918 250 Q 950 262 985 258" {st} stroke-width="9"/>'
+    svg += f'<path d="M712 250 Q 420 300 60 232" {st} stroke-width="7"/>'
+    # pipa (losango inclinado), presa no fio de baixo
+    cx, cy = 400, 480; a = math.radians(17)
+    r = lambda x, y: (cx + x * math.cos(a) - y * math.sin(a), cy + x * math.sin(a) + y * math.cos(a))
+    los = [r(0, -175), r(135, -30), r(0, 185), r(-135, -30)]
+    svg += f'<polygon points="{_poli(los)}" {PRETO} stroke="#000" stroke-width="12" stroke-linejoin="round"/>'
+    # rabiola com laços
+    rab = [r(0, 185)] + [(los[2][0] + 34 * math.sin(k * 1.25) + k * 16, los[2][1] + k * 48) for k in range(1, 6)]
+    svg += f'<path d="M{" L".join(f"{x:.1f} {y:.1f}" for x, y in rab)}" {st} stroke-width="8"/>'
+    for (x, y) in rab[1:5]:
+        svg += f'<polygon points="{_poli([(x, y), (x - 30, y - 15), (x - 30, y + 15)])}" {PRETO}/><polygon points="{_poli([(x, y), (x + 30, y - 15), (x + 30, y + 15)])}" {PRETO}/>'
+    # linha solta, caindo em voltas
+    svg += f'<path d="M{r(0, 10)[0]:.0f} {r(0, 10)[1]:.0f} C 250 560 150 600 170 700 S 300 780 210 860" {st} stroke-width="6"/>'
+
+    def cortes(p, rng):
+        p.linha([r(0, -150), r(0, 160)], 10, "u")                      # varetas
+        p.linha([r(-112, -30), r(112, -30)], 10, "u")
+        for k in range(3):                                             # talhos de luz no pano
+            p.linha([r(-70 + k * 22, -8 + k * 34), r(-28 + k * 12, -8 + k * 34 + 40)], 8, "v")
+        for y in range(300, 860, 110):                                 # veio do poste
+            p.linha([(808 + rng.uniform(-2, 2), y), (808 + rng.uniform(-2, 2), y + rng.uniform(50, 90))], 8, "v")
+
+    def tracos(p, rng):
+        x = 80
+        while x < 920:                                                 # chão quebrado
+            c = rng.uniform(50, 150)
+            p.linha([(x, 892), (x + c, 892 + rng.uniform(-2, 2))], 9, "v"); x += c + rng.uniform(18, 46)
+    return dict(vb=(1000, 1000), svg=svg, cortes=cortes, tracos=tracos, falhas=0.9)
+
+
+# ---------- tudo pronto: sol nascendo sob as bandeirolas ----------
+def tudo_pronto():
+    svg = ""
+    sx, sy, sr = 500, 690, 178
+    svg += f'<path d="M{sx - sr} {sy} A {sr} {sr} 0 0 1 {sx + sr} {sy} Z" {PRETO}/>'
+    for k in range(11):
+        a = math.radians(196 + k * 14.8); r1, r2 = sr + 30, sr + (190 if k % 2 == 0 else 120); la = 0.062
+        pts = [(sx + r1 * math.cos(a - la), sy + r1 * math.sin(a - la)), (sx + r1 * math.cos(a + la), sy + r1 * math.sin(a + la)),
+               (sx + r2 * math.cos(a), sy + r2 * math.sin(a))]
+        svg += f'<polygon points="{_poli(pts)}" {PRETO}/>'
+    svg += f'<rect x="80" y="{sy}" width="840" height="96" rx="10" {PRETO}/>'
+    # bandeirolas no alto
+    corda = lambda x: 120 + 70 * 4 * ((x - 70) / 860) * (1 - (x - 70) / 860)
+    svg += f'<path d="M70 120 Q 500 260 930 120" fill="none" stroke="#000" stroke-width="10" stroke-linecap="round"/>'
+    for i in range(9):
+        x = 120 + i * 95; y = corda(x) + 2
+        pts = [(x - 34, y), (x + 34, y), (x + (5 if i % 2 else -5), y + 92)]
+        cor = PRETO if i % 2 == 0 else 'fill="#fff"'
+        svg += f'<polygon points="{_poli(pts)}" {cor} stroke="#000" stroke-width="10" stroke-linejoin="round"/>'
+
+    def cortes(p, rng):
+        pts = [(sx + 118 * math.cos(a), sy + 118 * math.sin(a)) for a in np.linspace(3.5, 4.9, 16)]
+        p.linha(pts, 13, "v")                                          # brilho do sol
+        y = sy + 30
+        for i in range(3):                                             # chão em goiva U
+            x = 100 + rng.uniform(0, 30)
+            while x < 890:
+                c = rng.uniform(50, 170)
+                if rng.random() < 0.8:
+                    p.linha([(x, y), (min(x + c, 900), y + rng.uniform(-2, 2))], 9, "u")
+                x += c + rng.uniform(18, 50)
+            y += 24
+        for i in range(0, 9, 2):                                       # talho em cada bandeirola preta
+            x = 120 + i * 95; yy = corda(x) + 2
+            p.linha([(x - 12, yy + 16), (x - 4, yy + 50)], 8, "v")
+    return dict(vb=(1000, 1000), svg=svg, cortes=cortes, falhas=1.0)
+
+
+PECAS = {
     "faixa-bandeirolas": (bandeirolas, 1280, "Faixa de bandeirolas, divisória"),
     "ingresso": (ingresso, 1024, "Ingresso com picote e estrela"),
     "nada-por-aqui": (nada_por_aqui, 1024, "Mandacaru sob o sol, para telas vazias"),
     "sem-internet": (sem_internet, 1024, "Jangada parada no mar calmo, para quando falta internet"),
+    "algo-deu-errado": (algo_deu_errado, 1024, "Pipa enroscada no fio, para erros"),
+    "tudo-pronto": (tudo_pronto, 1024, "Sol nascendo sob bandeirolas, para confirmações"),
 }
 
 
@@ -219,5 +296,74 @@ def simbolo_ingresso():
             f'<path fill="currentColor" fill-rule="evenodd" d="{corpo}{estrela}{furos}"/></svg>')
 
 
+def _circ(cx, cy, r):
+    return f"M{cx - r:.2f} {cy}a{r} {r} 0 1 0 {2 * r} 0a{r} {r} 0 1 0 {-2 * r} 0Z"
+
+
+def _estrela(cx, cy, R, r):
+    pts = [(cx + (R if k % 2 == 0 else r) * math.sin(k * math.pi / 5), cy - (R if k % 2 == 0 else r) * math.cos(k * math.pi / 5)) for k in range(10)]
+    return "M" + "L".join(f"{x:.2f} {y:.2f}" for x, y in pts) + "Z"
+
+
+def _setor(cx, cy, ri, ro, a0, a1):
+    P = lambda r, a: f"{cx + r * math.cos(math.radians(a)):.2f} {cy + r * math.sin(math.radians(a)):.2f}"
+    return f"M{P(ro, a0)}A{ro} {ro} 0 0 1 {P(ro, a1)}L{P(ri, a1)}A{ri} {ri} 0 0 0 {P(ri, a0)}Z"
+
+
+def _simbolo(d):
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+            f'<path fill="currentColor" fill-rule="evenodd" d="{d}"/></svg>')
+
+
+def simbolo_legenda():
+    tela = "M5.5 5h13A2.5 2.5 0 0 1 21 7.5v9A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5v-9A2.5 2.5 0 0 1 5.5 5Z"
+    linhas = _capsula(6.6, 12.3, 12.4, 12.3, 0.85) + _capsula(15.2, 12.3, 17.4, 12.3, 0.85) + _capsula(6.6, 15.5, 9.4, 15.5, 0.85) + _capsula(12.2, 15.5, 17.4, 15.5, 0.85)
+    return _simbolo(tela + linhas)
+
+
+def simbolo_audiodescricao():
+    caixa = "M2.8 9.4h3.3L10.8 5.5v13L6.1 14.6H2.8Z"
+    return _simbolo(caixa + _setor(10.6, 12, 3.3, 5.0, -42, 42) + _setor(10.6, 12, 6.9, 8.6, -42, 42))
+
+
+def simbolo_sem_degraus():
+    rampa = "M2.5 20.5L21.5 20.5L21.5 11Z"
+    return _simbolo(rampa + _circ(8.1, 14.2, 2.75) + _circ(8.1, 14.2, 1.0))
+
+
+def simbolo_favorito():
+    return _simbolo(_estrela(12, 12.7, 9.6, 4.0))
+
+
+def simbolo_aviso():
+    sino = ("M12 3a1.4 1.4 0 0 1 1.4 1.4v.5a5.6 5.6 0 0 1 4.2 5.5v3.4l1.7 2.6a.9.9 0 0 1-.75 1.4H5.45a.9.9 0 0 1-.75-1.4l1.7-2.6v-3.4"
+            "a5.6 5.6 0 0 1 4.2-5.5v-.5A1.4 1.4 0 0 1 12 3Z")
+    return _simbolo(sino + "M9.8 19.3h4.4a2.2 2.2 0 0 1-4.4 0Z")
+
+
+def simbolo_mapa():
+    pino = "M12 2.5a6.8 6.8 0 0 1 6.8 6.8c0 4.6-4.6 9.6-6.8 12.2-2.2-2.6-6.8-7.6-6.8-12.2A6.8 6.8 0 0 1 12 2.5Z"
+    return _simbolo(pino + _circ(12, 9.3, 2.5))
+
+
+def simbolo_camera():
+    corpo = "M4.5 7h2.6l1.3-2h7.2l1.3 2h2.6a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2h-15a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"
+    return _simbolo(corpo + _circ(12, 13.2, 3.9) + _circ(12, 13.2, 1.7))
+
+
+def simbolo_privacidade():
+    corpo = "M6 10.6h12a1.5 1.5 0 0 1 1.5 1.5v7.4A1.5 1.5 0 0 1 18 21H6a1.5 1.5 0 0 1-1.5-1.5v-7.4A1.5 1.5 0 0 1 6 10.6Z"
+    argola = "M7.9 10.2V8a4.1 4.1 0 0 1 8.2 0v2.2h-2.1V8a2 2 0 0 0-4 0v2.2Z"
+    return _simbolo(corpo + argola + _circ(12, 15.6, 1.7))
+
+
 SIMBOLOS = {"simbolo-libras": (simbolo_libras, "Duas mãos sinalizando, selo de Libras"),
-            "simbolo-ingresso": (simbolo_ingresso, "Ingresso, para a aba Ingresso")}
+            "simbolo-ingresso": (simbolo_ingresso, "Ingresso, para a aba Ingresso"),
+            "simbolo-legenda": (simbolo_legenda, "Tela com linhas de legenda"),
+            "simbolo-audiodescricao": (simbolo_audiodescricao, "Alto-falante, selo de audiodescrição"),
+            "simbolo-sem-degraus": (simbolo_sem_degraus, "Rampa com roda, acesso sem degraus"),
+            "simbolo-favorito": (simbolo_favorito, "Estrela, favoritar sessão"),
+            "simbolo-aviso": (simbolo_aviso, "Sino, avisos"),
+            "simbolo-mapa": (simbolo_mapa, "Pino de mapa, local"),
+            "simbolo-camera": (simbolo_camera, "Câmera, permissão e leitor de QR"),
+            "simbolo-privacidade": (simbolo_privacidade, "Cadeado, privacidade e dados")}
