@@ -25,5 +25,6 @@ export function registrarRotasAcessos(roteador: Roteador, s: AcessosServico, id:
     .registrar('GET', '/acessos/:slug/pacote', rota(async (p, req) => [200, await s.pacote(p, param(req, 'slug'))]))
     .registrar('POST', '/acessos/:slug/leituras', rota(async (p, req) => [200, { resultado: await s.sincronizar(p, param(req, 'slug'), req.corpo) }]))
     .registrar('POST', '/acessos/:slug/meias/:id/conferir', rota((p, req) => sem(s.conferirMeia(p, param(req, 'slug'), param(req, 'id'), req.corpo))))
+    .registrar('GET', '/eventos/:slug/avisos', rota(async (p, req) => [200, await s.avisos(p, param(req, 'slug'))]))
     .registrar('GET', '/credenciais', rota(async (p) => [200, await s.minhas(p)]));
 }

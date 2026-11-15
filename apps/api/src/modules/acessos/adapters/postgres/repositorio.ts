@@ -3,7 +3,7 @@ import type { Banco } from '../../../../shared/db/banco.ts';
 import { comErroDeBanco } from '../../../../shared/db/erro-banco.ts';
 import { ErroDominio } from '../../../../shared/dominio/erro.ts';
 import type {
-  CredencialLista, EventoAcessos, MeiaLeitor, MinhaCredencial, PontoHoje, PontoLeitor, RepositorioAcessos, ZonaLeitor,
+  AvisoRecebido, CredencialLista, EventoAcessos, MeiaLeitor, MinhaCredencial, PontoHoje, PontoLeitor, RepositorioAcessos, ZonaLeitor,
 } from '../../application/acessos.ts';
 import type { Excecao, Regra, SituacaoLeitura } from '../../domain/acessos.ts';
 
@@ -129,6 +129,13 @@ export function repositorioAcessos(banco: Banco): RepositorioAcessos {
         'select inscritos, credenciais, entradas, leituras_negadas as "leiturasNegadas" from numeros_do_evento($1)', [eventoId]);
       return l ?? {};
     },
+    avisos: (pessoaId, slug) => banco.transacao({ pessoaId }, async (tx) => {
+      const [evento] = await tx.consultar<{ id: string }>('select id from evento where slug = $1', [slug]);
+      if (!evento) return null;
+      return tx.consultar<AvisoRecebido & Record<string, unknown>>(
+        `select id, titulo, corpo, urgente, publicar_em as "publicadoEm" from aviso
+         where evento_id = $1 and publicar_em <= now() order by urgente desc, publicar_em desc limit 50`, [evento.id]);
+    }),
     async minhas(pessoaId) {
       const linhas = await ler<{ id: string; ingresso_id: string | null; categoria: string; revogada: boolean; evento_id: string; slug: string; nome: string; inicio: string; fim: string; local: string; parceiro: string | null }>(
         pessoaId,

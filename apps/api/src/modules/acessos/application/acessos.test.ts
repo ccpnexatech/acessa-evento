@@ -48,6 +48,7 @@ function montar() {
       { id: ID(54), nome: 'Desligado', zonaId: null, zona: null, tipo: 'totem', modo: 'entrada_unica', ativo: false, ultimaSincEm: null, entradas: 0, credenciais: 0, saidas: 0, negadas: 0, ultimaLeituraEm: null },
     ],
     numeros: async () => ({ inscritos: 40, entradas: 15 }),
+    avisos: async (_p, slug) => (slug === EVENTO.slug ? [{ id: ID(70), titulo: 'Bem-vindos', corpo: 'O credenciamento abre às 7h.', urgente: false, publicadoEm: '2026-07-01T10:00:00Z' }] : null),
     minhas: async () => [
       { id: ID(20), ingressoId: ID(30), categoria: 'congressista', revogada: false, evento: { ...EVENTO, local: 'Fortaleza' }, parceiro: null },
       { id: ID(21), ingressoId: null, categoria: 'seguranca', revogada: false, evento: { ...EVENTO, local: 'Fortaleza' }, parceiro: null },
@@ -132,6 +133,12 @@ test('chegou o dia: entradas registradas por ponto e aviso para quem está sem s
     ['Desligado', null, null],
   ]);
   assert.ok(!JSON.stringify(h).toLowerCase().includes('lotação'));
+});
+
+test('avisos do evento para quem pergunta; evento que a pessoa não vê não existe', async () => {
+  const { s } = montar();
+  assert.equal((await s.avisos('caio', 'cocal-2026')).avisos[0]?.titulo, 'Bem-vindos');
+  await assert.rejects(s.avisos('caio', 'outro'), codigo('nao_encontrado'));
 });
 
 test('minhas credenciais: QR com ingresso para o congressista, com credencial para os outros, nenhum para a cancelada', async () => {

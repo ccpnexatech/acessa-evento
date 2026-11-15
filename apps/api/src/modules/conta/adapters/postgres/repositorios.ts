@@ -77,6 +77,19 @@ export function repositorioPessoas(banco: Banco): RepositorioPessoas {
           'select e.nome as evento, i.emitido_em as "emitidoEm", i.cancelado_em as "canceladoEm" from ingresso i join evento e on e.id = i.evento_id where i.pessoa_id = $1', [id]),
         acessibilidade: await tx.consultar(
           'select e.nome as evento, a.recursos, a.apagar_apos as "apagarApos" from pedido_acessibilidade a join evento e on e.id = a.evento_id where a.pessoa_id = $1', [id]),
+        // Área do organizador (ADRs 0025 a 0028): o que passou a existir sobre a pessoa também sai na exportação.
+        organizacoes: await tx.consultar(
+          'select o.nome as organizacao, m.papel, m.criado_em as "desde" from organizacao_membro m join organizacao o on o.id = m.organizacao_id where m.pessoa_id = $1', [id]),
+        credenciais: await tx.consultar(
+          `select e.nome as evento, c.categoria::text as categoria, c.emitida_em as "emitidaEm", c.revogada_em as "revogadaEm", c.motivo
+           from credencial c join evento e on e.id = c.evento_id where c.pessoa_id = $1 order by c.emitida_em`, [id]),
+        meiaEntrada: await tx.consultar(
+          `select e.nome as evento, m.motivo, m.declarada_em as "declaradaEm", m.resultado, m.apagar_apos as "apagarApos"
+           from elegibilidade_meia m join evento e on e.id = m.evento_id where m.pessoa_id = $1`, [id]),
+        parceiros: await tx.consultar(
+          `select e.nome as evento, coalesce(pa.nome_fantasia, pa.razao_social) as parceiro, m.papel, m.criado_em as "desde"
+           from membro_parceiro m join parceiro_evento pe on pe.id = m.parceiro_evento_id join parceiro pa on pa.id = pe.parceiro_id
+           join evento e on e.id = m.evento_id where m.pessoa_id = $1`, [id]),
         favoritos: await tx.consultar(
           'select a.titulo from favorito f join atividade a on a.id = f.atividade_id where f.pessoa_id = $1', [id]),
       }));

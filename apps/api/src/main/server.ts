@@ -4,6 +4,7 @@ import type { AddressInfo } from 'node:net';
 import { LoggerJson } from '../shared/logger.ts';
 import { relatorNulo, relatorSentry } from '../shared/erros/relator.ts';
 import { Banco } from '../shared/db/banco.ts';
+import { rodarManutencao } from '../shared/db/manutencao.ts';
 import { lerConfig } from './config.ts';
 import type { ConfigBanco } from './config.ts';
 import { assinadorQr, criarApp, dependenciasAcessos, dependenciasAssistente, dependenciasCadastros, dependenciasConta, dependenciasCredenciamento, dependenciasFeira, dependenciasInscricao, dependenciasOrganizacao, dependenciasProgramacao, verificadoresPadrao } from './app.ts';
@@ -54,6 +55,17 @@ function modulos(b: Banco, c: ConfigBanco) {
     acessos: dependenciasAcessos(b, conta, assinador),
     organizacao: dependenciasOrganizacao(b, conta, c, logger),
   };
+}
+
+// Manutenção de hora em hora: expurgos com prazo e reservas de estande vencidas. Falha só registra; a próxima hora tenta de novo.
+if (banco) {
+  const manutencao = (): void => {
+    rodarManutencao(banco)
+      .then((r) => logger.log('info', 'manutencao', { ...r }))
+      .catch((erro: unknown) => logger.log('warn', 'manutencao_falhou', { erro: erro instanceof Error ? erro.message : String(erro) }));
+  };
+  setInterval(manutencao, 60 * 60_000).unref();
+  manutencao();
 }
 
 servidor.listen(config.porta, () => {

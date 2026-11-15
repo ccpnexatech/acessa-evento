@@ -54,7 +54,10 @@ export interface RepositorioAcessos {
   hoje(pessoaId: string, eventoId: string): Promise<PontoHoje[]>;
   numeros(pessoaId: string, eventoId: string): Promise<Readonly<Record<string, number>>>;
   minhas(pessoaId: string): Promise<MinhaCredencial[]>;
+  /** Avisos já publicados que a pessoa pode ler neste evento; nulo se ela não enxerga o evento. */
+  avisos(pessoaId: string, slug: string): Promise<AvisoRecebido[] | null>;
 }
+export interface AvisoRecebido { readonly id: string; readonly titulo: string; readonly corpo: string; readonly urgente: boolean; readonly publicadoEm: string }
 
 export interface DependenciasAcessos {
   readonly repositorio: RepositorioAcessos;
@@ -212,6 +215,13 @@ export class AcessosServico {
       }),
       geradoEm: new Date(agora).toISOString(),
     };
+  }
+
+  /** Avisos da organização para a categoria de quem pergunta. A política do banco escolhe quais; aqui só se pede. */
+  async avisos(pessoaId: string, slug: string): Promise<{ avisos: AvisoRecebido[] }> {
+    const avisos = await this.#d.repositorio.avisos(pessoaId, slug);
+    if (!avisos) throw new ErroDominio('nao_encontrado', 'Evento não encontrado.');
+    return { avisos };
   }
 
   /** Credenciais da própria pessoa, cada uma com o QR assinado que funciona sem internet. */

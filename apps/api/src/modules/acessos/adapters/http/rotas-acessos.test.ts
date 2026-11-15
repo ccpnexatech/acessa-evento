@@ -57,6 +57,7 @@ test('cada rota chama o seu caso de uso, com o status certo, só com sessão e s
     ['POST', '/acessos/cocal-2026/leituras', 200, 'sincronizar'],
     ['POST', '/acessos/cocal-2026/meias/m1/conferir', 204, 'conferirMeia'],
     ['GET', '/credenciais', 200, 'minhas'],
+    ['GET', '/eventos/cocal-2026/avisos', 200, 'avisos'],
   ];
   for (const [metodo, caminho, status, caso] of ROTAS) {
     chamadas.length = 0;

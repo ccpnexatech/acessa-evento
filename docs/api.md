@@ -10,7 +10,7 @@ Todas as rotas, em ordem de fluxo. A API é Node 22 nativo (`node:http`), sem fr
 | `POST /acesso/sair` | Encerra a sessão atual |
 | `GET /conta` | Dados da conta |
 | `PUT /conta/primeiro-acesso` | Nome do crachá e aceite dos termos |
-| `GET /conta/exportacao` | Baixa todos os dados da pessoa (LGPD) |
+| `GET /conta/exportacao` | Baixa todos os dados da pessoa (LGPD), inclusive credenciais, declaração de meia-entrada e vínculos com organizações e parceiros |
 | `DELETE /conta` | Exclui a conta |
 | `GET /eventos/:slug/agenda` | Agenda publicada, com `ETag` e `304` quando nada mudou |
 | `GET /eventos/:slug/favoritos` | Atividades favoritas da pessoa |
@@ -18,7 +18,7 @@ Todas as rotas, em ordem de fluxo. A API é Node 22 nativo (`node:http`), sem fr
 | `DELETE /favoritos/:atividadeId` | Desmarca (idempotente) |
 | `GET /eventos` | Eventos publicados; `?recurso=libras` filtra pelo que o evento oferece |
 | `GET /eventos/:slug` | Página do evento: tipos de ingresso (com esgotado), acessibilidade e destaques |
-| `POST /eventos/:slug/inscricoes` | Inscrição e pagamento simulado; exige `Idempotency-Key` (a mesma chave nunca cobra duas vezes) |
+| `POST /eventos/:slug/inscricoes` | Inscrição e pagamento simulado; exige `Idempotency-Key` (a mesma chave nunca cobra duas vezes). Ingresso de meia-entrada exige `motivoMeia`; o documento é conferido na entrada, nunca enviado |
 | `GET /ingressos` | Ingressos da pessoa, com o QR assinado e o primeiro check-in |
 | `GET /credenciamento/eventos` | Eventos em que a pessoa é da equipe |
 | `GET /credenciamento/:slug/pacote` | Lista do evento e chaves públicas para o leitor offline (só equipe) |
@@ -65,6 +65,7 @@ Para quem não é da equipe, o evento na área do organizador responde `404`.
 | `GET /acessos/:slug/pacote` | Tudo o que o leitor precisa sem internet: chaves, credenciais (inclusive canceladas), zonas, regras, exceções, pontos e meias a conferir |
 | `POST /acessos/:slug/leituras` | Envia a fila do leitor (idempotente). Cada leitura volta como `registrada`, `repetida` ou `ignorada` |
 | `POST /acessos/:slug/meias/:id/conferir` | Marca a meia-entrada como conferida ou não apresentada |
+| `GET /eventos/:slug/avisos` | Avisos já publicados para a categoria de quem está logado |
 | `GET /credenciais` | Credenciais da pessoa, com o QR assinado de cada uma ([ADR 0030](adr/0030-qr-da-credencial-sem-ingresso.md)) |
 
 A rota `/credenciamento` da v1.0.0 continua igual.
