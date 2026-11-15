@@ -51,6 +51,24 @@ Todas exigem sessão e respondem com `cache-control: private, no-store`. Quem po
 
 Para quem não é da equipe, o evento na área do organizador responde `404`.
 
+### Controle de acesso
+
+| Método e rota | O que faz |
+| --- | --- |
+| `GET /organizador/eventos/:slug/regras-zona` | Quem entra em cada zona, por categoria e janela de horário |
+| `PUT /organizador/eventos/:slug/zonas/:zonaId/regras` | Troca as regras da zona (a lista enviada substitui a anterior) |
+| `GET /organizador/eventos/:slug/credenciais` | Credenciais do evento, com a primeira entrada, e as exceções |
+| `POST /organizador/eventos/:slug/credenciais` | Emite credencial para um e-mail (cria a conta se preciso); congressista recebe a sua ao se inscrever |
+| `POST /organizador/eventos/:slug/credenciais/:id/revogar` | Cancela a credencial, com motivo |
+| `PUT` e `DELETE /organizador/eventos/:slug/credenciais/:id/excecoes/:zonaId` | Libera ou barra uma pessoa numa zona, com motivo |
+| `GET /organizador/eventos/:slug/hoje` | "Chegou o dia": entradas registradas por ponto e pontos sem sincronizar |
+| `GET /acessos/:slug/pacote` | Tudo o que o leitor precisa sem internet: chaves, credenciais (inclusive canceladas), zonas, regras, exceções, pontos e meias a conferir |
+| `POST /acessos/:slug/leituras` | Envia a fila do leitor (idempotente). Cada leitura volta como `registrada`, `repetida` ou `ignorada` |
+| `POST /acessos/:slug/meias/:id/conferir` | Marca a meia-entrada como conferida ou não apresentada |
+| `GET /credenciais` | Credenciais da pessoa, com o QR assinado de cada uma ([ADR 0030](adr/0030-qr-da-credencial-sem-ingresso.md)) |
+
+A rota `/credenciamento` da v1.0.0 continua igual.
+
 ### Cadastros simples
 
 Cada cadastro tem as mesmas quatro rotas: `GET` (lista), `POST` (cria), `PATCH /:id` (altera parte) e `DELETE /:id`.

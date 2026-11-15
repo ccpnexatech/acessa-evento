@@ -49,6 +49,10 @@ import { OrganizacaoServico } from '../modules/organizacao/application/organizac
 import type { DependenciasOrganizacao } from '../modules/organizacao/application/organizacao.ts';
 import { repositorioOrganizacao } from '../modules/organizacao/adapters/postgres/repositorio.ts';
 import { registrarRotasOrganizacao } from '../modules/organizacao/adapters/http/rotas-organizacao.ts';
+import { AcessosServico } from '../modules/acessos/application/acessos.ts';
+import type { DependenciasAcessos } from '../modules/acessos/application/acessos.ts';
+import { repositorioAcessos } from '../modules/acessos/adapters/postgres/repositorio.ts';
+import { registrarRotasAcessos } from '../modules/acessos/adapters/http/rotas-acessos.ts';
 import { ErroHttp } from '../shared/http/tipos.ts';
 import type { Requisicao } from '../shared/http/tipos.ts';
 import { ErroConta } from '../modules/conta/domain/regras.ts';
@@ -74,6 +78,8 @@ export interface Dependencias {
   readonly cadastros?: DependenciasCadastros;
   /** Organização, evento, equipe e convites (ADR 0025). */
   readonly organizacao?: DependenciasOrganizacao;
+  /** Regras de zona, credenciais, leitor por ponto e "Chegou o dia" (ADR 0026). */
+  readonly acessos?: DependenciasAcessos;
   /** Para testes; em produção vem de SENTRY_DSN. */
   readonly relator?: RelatorErros;
 }
@@ -126,6 +132,10 @@ export function criarApp(d: Dependencias): Server {
 
   if (d.conta && d.organizacao) {
     registrarRotasOrganizacao(roteador, new OrganizacaoServico(d.organizacao), identificacao(d.conta));
+  }
+
+  if (d.conta && d.acessos) {
+    registrarRotasAcessos(roteador, new AcessosServico(d.acessos), identificacao(d.conta));
   }
 
   const relator = d.relator ?? (d.config.sentryDsn
@@ -214,6 +224,9 @@ export function enviadorDeTexto(config: ConfigBanco, logger: Logger): (para: str
 
 export const dependenciasOrganizacao = (banco: Banco, conta: DependenciasConta, config: ConfigBanco, logger: Logger): DependenciasOrganizacao =>
   ({ repositorio: repositorioOrganizacao(banco), auditoria: conta.auditoria, protecao: conta.protecao, enviarEmail: enviadorDeTexto(config, logger) });
+
+export const dependenciasAcessos = (banco: Banco, conta: DependenciasConta, assinador: Assinador): DependenciasAcessos =>
+  ({ repositorio: repositorioAcessos(banco), auditoria: conta.auditoria, assinador, protecao: conta.protecao, agoraMs: () => Date.now() });
 
 export const dependenciasAssistente = (banco: Banco): RepositorioAssistente => repositorioAssistente(banco);
 

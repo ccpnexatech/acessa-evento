@@ -10,7 +10,7 @@ import { criarBancoDeTeste } from './banco.ts';
 import type { BancoDeTeste } from './banco.ts';
 import { Banco } from '../../src/shared/db/banco.ts';
 import { loggerSilencioso } from '../../src/shared/logger.ts';
-import { criarApp, dependenciasCadastros, dependenciasConta, dependenciasCredenciamento, dependenciasInscricao, dependenciasOrganizacao } from '../../src/main/app.ts';
+import { criarApp, dependenciasAcessos, dependenciasCadastros, dependenciasConta, dependenciasCredenciamento, dependenciasInscricao, dependenciasOrganizacao } from '../../src/main/app.ts';
 import type { Dependencias } from '../../src/main/app.ts';
 import { assinadorEd25519, novaChavePrivada } from '../../src/shared/qr/ed25519.ts';
 
@@ -51,6 +51,7 @@ export async function subirApp(extras: (banco: Banco, base: Pick<Dependencias, '
     inscricao: { ...dependenciasInscricao(banco, conta, config, loggerSilencioso, assinador), notificador: { recibo: async () => undefined } },
     credenciamento: dependenciasCredenciamento(banco, conta, assinador),
     cadastros: dependenciasCadastros(banco, conta),
+    acessos: dependenciasAcessos(banco, conta, assinador),
     organizacao: { ...dependenciasOrganizacao(banco, conta, config, loggerSilencioso), enviarEmail },
     ...extras(banco, { conta }),
   });

@@ -1,6 +1,7 @@
 /** Adaptador Postgres de organização, evento, equipe e convite. A RLS e as funções da 0010 e 0014 decidem a permissão. */
 import type { Banco } from '../../../../shared/db/banco.ts';
 import { comErroDeBanco } from '../../../../shared/db/erro-banco.ts';
+import { ErroDominio } from '../../../../shared/dominio/erro.ts';
 import type {
   ConvitePendente, ConviteSalvo, EventoDetalhe, EventoResumo, ItemProntidao, Membro, OrganizacaoResumo, RepositorioOrganizacao,
 } from '../../application/organizacao.ts';
@@ -78,6 +79,9 @@ export function repositorioOrganizacao(banco: Banco): RepositorioOrganizacao {
     equipe: (pessoaId, eventoId) => ler<Membro & Record<string, unknown>>(pessoaId,
       'select pessoa_id as "pessoaId", nome, papeis, cargo, exibir_publico as "exibirPublico" from equipe_do_evento($1)', [eventoId]),
     definirMembro: (pessoaId, eventoId, alvoId, d) => comErroDeBanco(() => banco.transacao({ pessoaId }, async (tx) => {
+      // Sem permissão, apagar e atualizar não dão erro (a política só esconde as linhas): pergunta ao banco antes.
+      const [papel] = await tx.consultar<{ ok: boolean }>("select tem_papel($1, array['admin']) as ok", [eventoId]);
+      if (!papel?.ok) throw new ErroDominio('sem_permissao', 'Só a administração do evento monta a equipe.');
       await tx.consultar('delete from membro_organizacao where evento_id = $1 and pessoa_id = $2 and papel <> all ($3::text[])', [eventoId, alvoId, d.papeis]);
       await tx.consultar(
         `insert into membro_organizacao (evento_id, pessoa_id, papel) select $1, $2, unnest($3::text[])
