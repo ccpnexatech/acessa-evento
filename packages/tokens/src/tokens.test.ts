@@ -4,7 +4,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { contraste, cores, temas } from './index.ts';
+import { contraste, corDaPaleta, cores, nomesDaPaleta, paleta, temas } from './index.ts';
 import type { NomeCor } from './index.ts';
 
 test('contraste segue a fórmula da WCAG', () => {
@@ -32,3 +32,24 @@ for (const tema of temas) {
     assert.ok(contraste(cores[tema].borderControl, cores[tema].surface000) >= 3);
   });
 }
+
+// Paleta da aparência do evento: toda cor que o organizador pode escolher passa nos 3 temas.
+for (const tema of temas) {
+  for (const nome of nomesDaPaleta) {
+    test(`${tema}: paleta ${nome} tem texto legível e se destaca do fundo da tela`, () => {
+      const { fundo, texto } = paleta[tema][nome];
+      const noTexto = contraste(texto, fundo);
+      // Alto contraste pede 7:1 (AAA); os outros temas, 4.5:1 (AA).
+      assert.ok(noTexto >= (tema === 'alto-contraste' ? 7 : 4.5), `texto ${noTexto.toFixed(2)}:1`);
+      // 3:1 contra a tela: a faixa ou o botão continuam visíveis sem depender do texto.
+      const naTela = contraste(fundo, cores[tema].surface000);
+      assert.ok(naTela >= 3, `tela ${naTela.toFixed(2)}:1`);
+    });
+  }
+}
+
+test('paleta: nome desconhecido cai no padrão do app', () => {
+  assert.equal(corDaPaleta('light', 'azul').fundo, '#1d4ed8');
+  assert.deepEqual(corDaPaleta('light', '#ff0000'), paleta.light.petroleo);
+  assert.deepEqual(corDaPaleta('dark', undefined, 'grafite'), paleta.dark.grafite);
+});
