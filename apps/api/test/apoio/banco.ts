@@ -72,6 +72,14 @@ export async function criarBancoDeTeste(opcoes: { migrar?: boolean } = {}): Prom
       await dono.end();
       const a = new pg.Client({ connectionString: base, connectionTimeoutMillis: 5_000 });
       await a.connect();
+      // O pool da API dá "fechado" assim que manda encerrar as conexões, antes de os soquetes
+      // fecharem. Derrubar o banco à força nesse intervalo mata uma conexão viva, e o erro dela
+      // chega sem dono e falha o arquivo de teste. Espera as conexões saírem antes de derrubar.
+      for (let tentativa = 0; tentativa < 100; tentativa++) {
+        const { rows } = await a.query<{ n: number }>('select count(*)::int as n from pg_stat_activity where datname = $1', [nome]);
+        if ((rows[0]?.n ?? 0) === 0) break;
+        await new Promise((ok) => setTimeout(ok, 20));
+      }
       await a.query(`drop database if exists ${nome} with (force)`);
       await a.end();
     },
