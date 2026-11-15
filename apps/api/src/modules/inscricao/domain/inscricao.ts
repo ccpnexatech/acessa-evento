@@ -24,7 +24,15 @@ export interface TipoIngresso {
   readonly descricao: string | null;
   readonly precoCentavos: number;
   readonly esgotado: boolean;
+  /** Ausente nos eventos da v1.0.0: vale como inteira (ADR 0027). */
+  readonly modalidade?: 'inteira' | 'meia' | 'acompanhante' | 'cortesia';
+  /** Só vem quando o organizador escolheu mostrar o saldo ao público. */
+  readonly vagasRestantes?: number | null;
 }
+
+/** Motivos de meia-entrada que a pessoa pode declarar; o documento é conferido na entrada, nunca enviado. */
+export const MOTIVOS_MEIA = ['estudante', 'idoso', 'pcd', 'acompanhante_pcd', 'jovem_baixa_renda', 'professor', 'doador_sangue'] as const;
+export type MotivoMeia = (typeof MOTIVOS_MEIA)[number];
 
 export interface DetalheEvento extends ResumoEvento {
   readonly descricao: string | null;
@@ -65,6 +73,8 @@ export interface DadosInscricao {
   readonly metodo: Metodo;
   /** Só existe no caminho até o provedor; nunca é guardado nem registrado em log. */
   readonly cartao: { readonly numero: string } | null;
+  /** Declarado na compra de meia-entrada; nulo nos outros ingressos. */
+  readonly motivoMeia: MotivoMeia | null;
 }
 
 export type CodigoErroInscricao =
@@ -123,7 +133,10 @@ const objeto = (v: unknown): v is Record<string, unknown> => typeof v === 'objec
 
 export function validarInscricao(corpo: unknown): DadosInscricao {
   if (!objeto(corpo)) throw new ErroInscricao('dados_invalidos', 'Envie os dados da inscrição.');
-  const { tipoIngressoId, recursos = [], metodo, cartao } = corpo;
+  const { tipoIngressoId, recursos = [], metodo, cartao, motivoMeia = null } = corpo;
+  if (motivoMeia !== null && !(MOTIVOS_MEIA as readonly unknown[]).includes(motivoMeia)) {
+    throw new ErroInscricao('dados_invalidos', 'Escolha o motivo da meia-entrada.', 'motivoMeia');
+  }
   if (typeof tipoIngressoId !== 'string' || !UUID.test(tipoIngressoId)) {
     throw new ErroInscricao('dados_invalidos', 'Escolha um tipo de ingresso.', 'tipoIngressoId');
   }
@@ -139,7 +152,7 @@ export function validarInscricao(corpo: unknown): DadosInscricao {
     }
     dadosCartao = { numero };
   }
-  return { tipoIngressoId, recursos: [...new Set(recursos as RecursoPedido[])], metodo, cartao: dadosCartao };
+  return { tipoIngressoId, recursos: [...new Set(recursos as RecursoPedido[])], metodo, cartao: dadosCartao, motivoMeia: motivoMeia as MotivoMeia | null };
 }
 
 /** Pedidos de acessibilidade são apagados 30 dias após o fim do evento (ADR 0012). */

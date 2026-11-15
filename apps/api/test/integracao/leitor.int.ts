@@ -46,25 +46,21 @@ before(async () => {
   ids.vip = await criar('zonas', { nome: 'Sala VIP' });
   ids.portao = await criar('pontos-leitura', { nome: 'Portão 1' });
   ids.portaVip = await criar('pontos-leitura', { nome: 'Porta VIP', zonaId: ids.vip, modo: 'passagem_livre' });
-  // Caio se inscreve pelo fluxo da v1: tipo "Meia" e pagamento simulado.
-  const tipo = await criar('tipos-ingresso', { nome: 'Meia', precoCentavos: 5000, vagas: 10, modalidade: 'meia' });
-  await app.dono("insert into elegibilidade_meia (evento_id, pessoa_id, motivo) values ($1, $2, 'estudante')", [eventoId, await app.pessoaDe('caio@exemplo.com.br')]);
-  const inscricao = await fetchInscricao(tipo);
-  assert.equal(inscricao, 201);
+  // Caio compra meia-entrada pela rota de inscrição da v1, agora declarando o motivo.
+  const tipo = await criar('tipos-ingresso', { nome: 'Meia', precoCentavos: 5000, vagas: 10, modalidade: 'meia', publicoVeSaldo: true });
+  const pagina = await app.pedir<{ tipos: { modalidade: string; vagasRestantes: number | null }[] }>('GET', '/eventos/jornada-2027');
+  assert.deepEqual(pagina.corpo.tipos.map((t) => [t.modalidade, t.vagasRestantes]), [['meia', 10]]);
+  const inscrever = (corpo: unknown) => fetch(`${app.base}/eventos/jornada-2027/inscricoes`, {
+    method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${caio}`, 'idempotency-key': `leitor-${randomUUID()}` }, body: JSON.stringify(corpo),
+  });
+  const semMotivo = await inscrever({ tipoIngressoId: tipo, metodo: 'pix' });
+  assert.equal(semMotivo.status, 422);
+  assert.match(((await semMotivo.json()) as { titulo: string }).titulo, /Informe o motivo da meia-entrada/);
+  const feita = await inscrever({ tipoIngressoId: tipo, metodo: 'pix', motivoMeia: 'estudante' });
+  assert.equal(feita.status, 201);
+  ids.ingresso = ((await feita.json()) as { ingresso: { id: string } }).ingresso.id;
 });
 after(() => app.fechar());
-
-async function fetchInscricao(tipoIngressoId: string): Promise<number> {
-  // A rota de inscrição exige Idempotency-Key, que o apoio de teste não envia: monta o pedido como o banco aceitaria.
-  const pessoa = await app.pessoaDe('caio@exemplo.com.br');
-  const [pedido] = await app.dono<{ id: string }>(
-    `insert into pedido (pessoa_id, evento_id, tipo_ingresso_id, chave_idempotencia, valor_centavos, metodo, status)
-     values ($1, $2, $3, $4, 5000, 'pix', 'aprovado') returning id`, [pessoa, eventoId, tipoIngressoId, randomUUID()]);
-  const [ingresso] = await app.dono<{ id: string }>(
-    'insert into ingresso (pedido_id, pessoa_id, evento_id, tipo_ingresso_id) values ($1, $2, $3, $4) returning id', [pedido?.id, pessoa, eventoId, tipoIngressoId]);
-  ids.ingresso = ingresso?.id ?? '';
-  return ingresso ? 201 : 500;
-}
 
 test('regras da zona: a lista enviada substitui a anterior; quem não é de operação não muda', async () => {
   assert.equal((await app.pedir('PUT', `${EV}/zonas/${ids.vip}/regras`, ana, { regras: [{ categoria: 'palestrante' }, { categoria: 'convidado' }] })).status, 204);
@@ -179,6 +175,28 @@ test('chegou o dia: entradas registradas por ponto, ponto que sincronizou e pont
     ['Portão 3', 0, 0, 'Ainda não sincronizou. Abra o leitor neste ponto com internet.'],
   ]);
   assert.equal((await app.pedir('GET', `${EV}/hoje`, vizinha)).status, 404);
+});
+
+test('avisos chegam a quem tem credencial da categoria, na hora marcada; a exportação da conta inclui credencial e meia', async () => {
+  await app.pedir('POST', `${EV}/avisos`, ana, { titulo: 'Para todos', corpo: 'O credenciamento abre às 7h.' });
+  await app.pedir('POST', `${EV}/avisos`, ana, { titulo: 'Só segurança', corpo: 'Troca de turno às 13h.', categorias: ['seguranca'], urgente: true });
+  await app.pedir('POST', `${EV}/avisos`, ana, { titulo: 'Amanhã', corpo: 'Ainda não publicado.', publicarEm: new Date(Date.now() + 86_400_000).toISOString() });
+  const titulos = async (token: string) => (await app.pedir<{ avisos: { titulo: string }[] }>('GET', '/eventos/jornada-2027/avisos', token)).corpo.avisos.map((a) => a.titulo);
+  assert.deepEqual(await titulos(caio), ['Para todos']);
+  assert.deepEqual(await titulos(duda), []);                      // credencial revogada não recebe
+  assert.deepEqual(await titulos(ana), ['Só segurança', 'Para todos']); // a equipe vê os publicados, urgente primeiro
+  assert.deepEqual(await titulos(vizinha), []);
+  assert.equal((await app.pedir('GET', '/eventos/jornada-2027/avisos')).status, 401);
+  const dados = (await app.pedir<{ credenciais: { categoria: string }[]; meiaEntrada: { motivo: string; resultado: string }[] }>('GET', '/conta/exportacao', caio)).corpo;
+  assert.deepEqual(dados.credenciais.map((c) => c.categoria), ['congressista']);
+  assert.deepEqual(dados.meiaEntrada.map((m) => [m.motivo, m.resultado]), [['estudante', 'confirmada']]);
+});
+
+test('manutenção: libera reserva vencida e apaga declaração de meia fora do prazo', async () => {
+  const { rodarManutencao } = await import('../../src/shared/db/manutencao.ts');
+  assert.deepEqual(await rodarManutencao(app.banco), { acessibilidade: 0, meia: 0, reservas: 0 });
+  await app.dono('update elegibilidade_meia set apagar_apos = current_date - 1');
+  assert.deepEqual(await rodarManutencao(app.banco), { acessibilidade: 0, meia: 1, reservas: 0 });
 });
 
 test('auditoria do controle de acesso não guarda e-mail nem motivo de meia-entrada', async () => {

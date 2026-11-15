@@ -22,6 +22,8 @@ export interface Resposta<T> {
 export interface AppDeTeste {
   readonly b: BancoDeTeste;
   readonly banco: Banco;
+  /** Endereço da API, para pedidos com cabeçalhos próprios (Idempotency-Key). */
+  readonly base: string;
   /** Cria a conta pelo fluxo real de código por e-mail e devolve o token da sessão. */
   entrar(email: string, nome: string): Promise<string>;
   /** E-mails de convite e aviso que a API "enviou". */
@@ -72,6 +74,7 @@ export async function subirApp(extras: (banco: Banco, base: Pick<Dependencias, '
   return {
     b,
     banco,
+    base,
     emails,
     pedir,
     async entrar(email, nome) {

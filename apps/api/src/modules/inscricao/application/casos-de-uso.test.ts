@@ -92,6 +92,24 @@ test('Pix aprovado: emite ingresso, audita, manda recibo e guarda o pedido de ac
   assert.deepEqual(m.acessibilidade, [{ recursos: ['libras'], apagar: '2026-08-02' }]);
 });
 
+test('meia-entrada exige o motivo declarado; ingresso inteiro ignora o motivo', async () => {
+  const meia = evento({ tipos: [{ id: CONGRESSISTA, nome: 'Meia', descricao: null, precoCentavos: 22500, esgotado: false, modalidade: 'meia' }] });
+  const reservas: (string | null | undefined)[] = [];
+  const comEspia = (ev: DetalheEvento) => {
+    const m = memoria(ev);
+    const original = m.repo.reservar.bind(m.repo);
+    m.repo.reservar = (p, r) => {
+      reservas.push(r.motivoMeia);
+      return original(p, r);
+    };
+    return servico(m).s;
+  };
+  await rejeita(comEspia(meia).inscrever(P, 'cocal-2026', CHAVE, pix), 'dados_invalidos');
+  await comEspia(meia).inscrever(P, 'cocal-2026', CHAVE, { ...pix, motivoMeia: 'estudante' });
+  await comEspia(evento()).inscrever(P, 'cocal-2026', CHAVE, { ...pix, motivoMeia: 'estudante' });
+  assert.deepEqual(reservas, ['estudante', null]);
+});
+
 test('não cobra duas vezes: a mesma chave devolve o mesmo resultado', async () => {
   const { s, pagamento, m } = servico();
   const a = await s.inscrever(P, 'cocal-2026', CHAVE, pix);

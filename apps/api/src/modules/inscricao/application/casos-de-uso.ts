@@ -21,6 +21,8 @@ export interface NovaReserva {
   readonly cartaoFinal: string | null;
   readonly recursos: readonly RecursoPedido[];
   readonly apagarAcessibilidadeApos: string;
+  /** Declaração de meia-entrada gravada junto com o pedido (ADR 0027). */
+  readonly motivoMeia?: string | null;
 }
 
 export interface RepositorioInscricao {
@@ -125,6 +127,12 @@ export class InscricaoServico {
     const tipo = evento.tipos.find((t) => t.id === dados.tipoIngressoId);
     if (!tipo) throw new ErroInscricao('tipo_inexistente', 'Tipo de ingresso não encontrado.', 'tipoIngressoId');
 
+    // Meia-entrada só com o motivo declarado; nos outros ingressos o motivo é ignorado.
+    const motivoMeia = tipo.modalidade === 'meia' ? dados.motivoMeia : null;
+    if (tipo.modalidade === 'meia' && !motivoMeia) {
+      throw new ErroInscricao('dados_invalidos', 'Informe o motivo da meia-entrada. O documento é conferido na entrada do evento.', 'motivoMeia');
+    }
+
     let pedido = anterior;
     if (!pedido) {
       if (!evento.inscricoesAbertas) throw new ErroInscricao('inscricoes_fechadas', 'As inscrições deste evento estão fechadas.');
@@ -138,6 +146,7 @@ export class InscricaoServico {
         cartaoFinal: dados.cartao ? dados.cartao.numero.slice(-4) : null,
         recursos: dados.recursos,
         apagarAcessibilidadeApos: dataExpurgo(evento.fim),
+        motivoMeia,
       });
       if (reserva === 'esgotado') throw new ErroInscricao('esgotado', `O ingresso "${tipo.nome}" esgotou.`, 'tipoIngressoId');
       pedido = reserva;

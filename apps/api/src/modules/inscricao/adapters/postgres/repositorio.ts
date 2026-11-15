@@ -34,7 +34,8 @@ export function repositorioInscricao(banco: Banco): RepositorioInscricao {
           `select ${CAMPOS_EVENTO}, e.descricao, e.fuso from evento e where e.slug = $1`, [slug]);
         if (!e) return null;
         const tipos = await tx.consultar<DetalheEvento['tipos'][number]>(
-          `select id, nome, descricao, preco_centavos as "precoCentavos", ocupadas >= vagas as esgotado
+          `select id, nome, descricao, preco_centavos as "precoCentavos", ocupadas >= vagas as esgotado, modalidade,
+                  case when publico_ve_saldo then vagas - ocupadas end as "vagasRestantes"
            from tipo_ingresso where evento_id = $1 order by ordem, nome`, [e.id]);
         const destaques = await tx.consultar<DetalheEvento['destaques'][number]>(
           'select titulo, inicio from atividade where evento_id = $1 and publicada order by inicio, titulo limit 4', [e.id]);
@@ -64,6 +65,12 @@ export function repositorioInscricao(banco: Banco): RepositorioInscricao {
             `insert into pedido_acessibilidade (pessoa_id, evento_id, recursos, apagar_apos) values ($1, $2, $3, $4)
              on conflict (pessoa_id, evento_id) do update set recursos = excluded.recursos, apagar_apos = excluded.apagar_apos`,
             [pessoaId, r.eventoId, r.recursos, r.apagarAcessibilidadeApos]);
+        }
+        if (r.motivoMeia) {
+          // Quem já declarou neste evento mantém a declaração (ela pode até já ter sido conferida).
+          await tx.consultar(
+            'insert into elegibilidade_meia (evento_id, pessoa_id, motivo) values ($1, $2, $3) on conflict (evento_id, pessoa_id) do nothing',
+            [r.eventoId, pessoaId, r.motivoMeia]);
         }
         if (!p) throw new Error('Pedido não criado.');
         return p;

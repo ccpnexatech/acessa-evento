@@ -21,7 +21,12 @@ test('Luhn aceita cartões de teste e pega dígito trocado', () => {
 
 test('inscrição por Pix: recursos repetidos viram um só', () => {
   assert.deepEqual(validarInscricao({ tipoIngressoId: TIPO, recursos: ['libras', 'libras'], metodo: 'pix' }),
-    { tipoIngressoId: TIPO, recursos: ['libras'], metodo: 'pix', cartao: null });
+    { tipoIngressoId: TIPO, recursos: ['libras'], metodo: 'pix', cartao: null, motivoMeia: null });
+});
+
+test('meia-entrada: o motivo vem de uma lista fechada', () => {
+  assert.equal(validarInscricao({ tipoIngressoId: TIPO, metodo: 'pix', motivoMeia: 'estudante' }).motivoMeia, 'estudante');
+  assert.equal(codigo(() => validarInscricao({ tipoIngressoId: TIPO, metodo: 'pix', motivoMeia: 'amigo do dono' })), 'dados_invalidos');
 });
 
 test('inscrição por cartão limpa espaços e exige número válido', () => {
