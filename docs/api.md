@@ -27,6 +27,21 @@ Todas as rotas, em ordem de fluxo. A API é Node 22 nativo (`node:http`), sem fr
 | `PUT /eventos/:slug/assistente` | Publica uma nova versão (organização; grafo validado) |
 | `POST /eventos/:slug/assistente/avaliacoes` | "Isso respondeu sua dúvida?", sem dados pessoais |
 
+## Área do organizador
+
+Todas exigem sessão e respondem com `cache-control: private, no-store`. Quem pode o quê é decidido pela RLS do banco ([ADR 0029](adr/0029-api-do-organizador-cadastros-declarativos.md)).
+
+### Cadastros simples
+
+Cada cadastro tem as mesmas quatro rotas: `GET` (lista), `POST` (cria), `PATCH /:id` (altera parte) e `DELETE /:id`.
+
+| Base | Cadastros |
+| --- | --- |
+| `/organizador/organizacoes/:organizacaoId/…` | `locais`, `parceiros`, `modelos-contrato` |
+| `/organizador/eventos/:slug/…` | `zonas`, `salas`, `palestrantes`, `atividades`, `pontos-leitura`, `tipos-ingresso`, `avisos`, `segmentos`, `plantas`, `tipos-estande`, `estandes`, `niveis-expositor`, `servicos-feira`, `parceiros-evento` (sem `PATCH`) |
+
+Campo desconhecido é recusado com `422`; nome repetido ou registro em uso, `409`; sem o papel, `403` ao criar e `404` ao alterar ou apagar.
+
 Erros seguem o formato Problem Details (RFC 9457) com um `codigo` estável e uma mensagem pronta para a pessoa.
 
 

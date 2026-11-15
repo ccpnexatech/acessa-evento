@@ -41,6 +41,10 @@ import type { RepositorioProgramacao } from '../modules/programacao/application/
 import { repositorioProgramacao } from '../modules/programacao/adapters/postgres/repositorio.ts';
 import { registrarRotasProgramacao } from '../modules/programacao/adapters/http/rotas-programacao.ts';
 import type { Identificacao } from '../modules/programacao/adapters/http/rotas-programacao.ts';
+import { CadastrosServico } from '../modules/cadastros/application/cadastros.ts';
+import type { DependenciasCadastros } from '../modules/cadastros/application/cadastros.ts';
+import { repositorioCadastros } from '../modules/cadastros/adapters/postgres/repositorio.ts';
+import { registrarRotasCadastros } from '../modules/cadastros/adapters/http/rotas-cadastros.ts';
 import { ErroHttp } from '../shared/http/tipos.ts';
 import type { Requisicao } from '../shared/http/tipos.ts';
 import { ErroConta } from '../modules/conta/domain/regras.ts';
@@ -62,6 +66,8 @@ export interface Dependencias {
   readonly credenciamento?: DependenciasCredenciamento;
   /** Assistente guiado; também exige o módulo conta (para publicar). */
   readonly assistente?: RepositorioAssistente;
+  /** Cadastros simples da área do organizador (ADR 0029). */
+  readonly cadastros?: DependenciasCadastros;
   /** Para testes; em produção vem de SENTRY_DSN. */
   readonly relator?: RelatorErros;
 }
@@ -106,6 +112,10 @@ export function criarApp(d: Dependencias): Server {
   }
   if (d.conta && d.assistente) {
     registrarRotasAssistente(roteador, new AssistenteServico(d.assistente), identificacao(d.conta));
+  }
+
+  if (d.conta && d.cadastros) {
+    registrarRotasCadastros(roteador, new CadastrosServico(d.cadastros), identificacao(d.conta));
   }
 
   const relator = d.relator ?? (d.config.sentryDsn
@@ -180,6 +190,9 @@ export function dependenciasCredenciamento(banco: Banco, conta: DependenciasCont
     agoraMs: () => Date.now(),
   };
 }
+
+export const dependenciasCadastros = (banco: Banco, conta: DependenciasConta): DependenciasCadastros =>
+  ({ repositorio: repositorioCadastros(banco), auditoria: conta.auditoria });
 
 export const dependenciasAssistente = (banco: Banco): RepositorioAssistente => repositorioAssistente(banco);
 
