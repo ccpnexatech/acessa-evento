@@ -31,6 +31,26 @@ Todas as rotas, em ordem de fluxo. A API é Node 22 nativo (`node:http`), sem fr
 
 Todas exigem sessão e respondem com `cache-control: private, no-store`. Quem pode o quê é decidido pela RLS do banco ([ADR 0029](adr/0029-api-do-organizador-cadastros-declarativos.md)).
 
+### Organização, evento e equipe
+
+| Método e rota | O que faz |
+| --- | --- |
+| `GET /organizador/inicio` | Organizações e eventos em que a pessoa trabalha, com os papéis, e convites esperando resposta |
+| `POST /organizador/organizacoes` | Cria a organização; quem cria vira dono |
+| `POST /organizador/organizacoes/:organizacaoId/eventos` | Cria um evento em rascunho (ou de demonstração) |
+| `POST /organizador/organizacoes/:organizacaoId/convites` | Convida para dono ou admin da organização (só o dono) |
+| `GET /organizador/eventos/:slug` | Início do evento: dados, papéis de quem pergunta, checklist de prontidão e números |
+| `PATCH /organizador/eventos/:slug` | Altera dados, publica e define a aparência (cores só da paleta) |
+| `GET /organizador/eventos/:slug/equipe` | Equipe com nome e papéis, convites e a frase que explica cada papel |
+| `PUT /organizador/eventos/:slug/equipe/:pessoaId` | Define os papéis, o cargo e se aparece na página do evento |
+| `DELETE /organizador/eventos/:slug/equipe/:pessoaId` | Tira a pessoa da equipe |
+| `POST /organizador/eventos/:slug/convites` | Convida por e-mail com um ou mais papéis; vale 14 dias |
+| `DELETE /organizador/convites/:id` | Cancela um convite ainda não respondido |
+| `GET /convites` | Convites pendentes para o e-mail de quem está logado |
+| `POST /convites/:id/aceitar` | Aceita o convite; `409` se venceu, foi cancelado ou é de outro e-mail |
+
+Para quem não é da equipe, o evento na área do organizador responde `404`.
+
 ### Cadastros simples
 
 Cada cadastro tem as mesmas quatro rotas: `GET` (lista), `POST` (cria), `PATCH /:id` (altera parte) e `DELETE /:id`.

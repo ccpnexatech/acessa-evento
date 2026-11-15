@@ -45,6 +45,10 @@ import { CadastrosServico } from '../modules/cadastros/application/cadastros.ts'
 import type { DependenciasCadastros } from '../modules/cadastros/application/cadastros.ts';
 import { repositorioCadastros } from '../modules/cadastros/adapters/postgres/repositorio.ts';
 import { registrarRotasCadastros } from '../modules/cadastros/adapters/http/rotas-cadastros.ts';
+import { OrganizacaoServico } from '../modules/organizacao/application/organizacao.ts';
+import type { DependenciasOrganizacao } from '../modules/organizacao/application/organizacao.ts';
+import { repositorioOrganizacao } from '../modules/organizacao/adapters/postgres/repositorio.ts';
+import { registrarRotasOrganizacao } from '../modules/organizacao/adapters/http/rotas-organizacao.ts';
 import { ErroHttp } from '../shared/http/tipos.ts';
 import type { Requisicao } from '../shared/http/tipos.ts';
 import { ErroConta } from '../modules/conta/domain/regras.ts';
@@ -68,6 +72,8 @@ export interface Dependencias {
   readonly assistente?: RepositorioAssistente;
   /** Cadastros simples da área do organizador (ADR 0029). */
   readonly cadastros?: DependenciasCadastros;
+  /** Organização, evento, equipe e convites (ADR 0025). */
+  readonly organizacao?: DependenciasOrganizacao;
   /** Para testes; em produção vem de SENTRY_DSN. */
   readonly relator?: RelatorErros;
 }
@@ -116,6 +122,10 @@ export function criarApp(d: Dependencias): Server {
 
   if (d.conta && d.cadastros) {
     registrarRotasCadastros(roteador, new CadastrosServico(d.cadastros), identificacao(d.conta));
+  }
+
+  if (d.conta && d.organizacao) {
+    registrarRotasOrganizacao(roteador, new OrganizacaoServico(d.organizacao), identificacao(d.conta));
   }
 
   const relator = d.relator ?? (d.config.sentryDsn
@@ -193,6 +203,17 @@ export function dependenciasCredenciamento(banco: Banco, conta: DependenciasCont
 
 export const dependenciasCadastros = (banco: Banco, conta: DependenciasConta): DependenciasCadastros =>
   ({ repositorio: repositorioCadastros(banco), auditoria: conta.auditoria });
+
+/** Envio de texto simples pelo mesmo canal do código de acesso; em desenvolvimento só registra o assunto. */
+export function enviadorDeTexto(config: ConfigBanco, logger: Logger): (para: string, assunto: string, texto: string) => Promise<void> {
+  const email = config.email;
+  return email.provedor === 'resend'
+    ? (para, assunto, texto) => enviarPelaResend({ chave: email.chave, remetente: email.remetente }, para, assunto, texto)
+    : async (_para, assunto) => logger.log('info', 'email_dev', { assunto });
+}
+
+export const dependenciasOrganizacao = (banco: Banco, conta: DependenciasConta, config: ConfigBanco, logger: Logger): DependenciasOrganizacao =>
+  ({ repositorio: repositorioOrganizacao(banco), auditoria: conta.auditoria, protecao: conta.protecao, enviarEmail: enviadorDeTexto(config, logger) });
 
 export const dependenciasAssistente = (banco: Banco): RepositorioAssistente => repositorioAssistente(banco);
 

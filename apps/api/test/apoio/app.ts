@@ -10,7 +10,7 @@ import { criarBancoDeTeste } from './banco.ts';
 import type { BancoDeTeste } from './banco.ts';
 import { Banco } from '../../src/shared/db/banco.ts';
 import { loggerSilencioso } from '../../src/shared/logger.ts';
-import { criarApp, dependenciasCadastros, dependenciasConta, dependenciasCredenciamento, dependenciasInscricao } from '../../src/main/app.ts';
+import { criarApp, dependenciasCadastros, dependenciasConta, dependenciasCredenciamento, dependenciasInscricao, dependenciasOrganizacao } from '../../src/main/app.ts';
 import type { Dependencias } from '../../src/main/app.ts';
 import { assinadorEd25519, novaChavePrivada } from '../../src/shared/qr/ed25519.ts';
 
@@ -24,6 +24,8 @@ export interface AppDeTeste {
   readonly banco: Banco;
   /** Cria a conta pelo fluxo real de código por e-mail e devolve o token da sessão. */
   entrar(email: string, nome: string): Promise<string>;
+  /** E-mails de convite e aviso que a API "enviou". */
+  readonly emails: { para: string; assunto: string; texto: string }[];
   /** Id da pessoa dona de um token, para montar dados como dono do esquema. */
   pessoaDe(email: string): Promise<string>;
   pedir<T = Record<string, unknown>>(metodo: string, caminho: string, token?: string | null, corpo?: unknown): Promise<Resposta<T>>;
@@ -38,6 +40,8 @@ export async function subirApp(extras: (banco: Banco, base: Pick<Dependencias, '
   const config = { url: b.url, chaves: { cifra: new Map([[1, randomBytes(32)]]), atual: 1, indice: randomBytes(32) }, email: { provedor: 'dev' as const } };
   const conta = { ...dependenciasConta(banco, config, loggerSilencioso), email: { enviarCodigo: async (email: string, codigo: string) => void caixa.push({ email, codigo }) } };
   const assinador = assinadorEd25519('qr-teste', novaChavePrivada());
+  const emails: AppDeTeste['emails'] = [];
+  const enviarEmail = async (para: string, assunto: string, texto: string) => void emails.push({ para, assunto, texto });
   const app: Server = criarApp({
     config: { porta: 0, ambiente: 'teste', corsOrigens: [] },
     logger: loggerSilencioso,
@@ -47,6 +51,7 @@ export async function subirApp(extras: (banco: Banco, base: Pick<Dependencias, '
     inscricao: { ...dependenciasInscricao(banco, conta, config, loggerSilencioso, assinador), notificador: { recibo: async () => undefined } },
     credenciamento: dependenciasCredenciamento(banco, conta, assinador),
     cadastros: dependenciasCadastros(banco, conta),
+    organizacao: { ...dependenciasOrganizacao(banco, conta, config, loggerSilencioso), enviarEmail },
     ...extras(banco, { conta }),
   });
   await new Promise<void>((ok) => app.listen(0, ok));
@@ -65,6 +70,7 @@ export async function subirApp(extras: (banco: Banco, base: Pick<Dependencias, '
   return {
     b,
     banco,
+    emails,
     pedir,
     async entrar(email, nome) {
       await pedir('POST', '/acesso/codigo', null, { email });
