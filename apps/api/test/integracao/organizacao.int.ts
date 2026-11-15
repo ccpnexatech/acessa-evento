@@ -5,10 +5,10 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import type pg from 'pg';
-import { criarBancoDeTeste, PASTA_MIGRACOES } from '../apoio/banco.ts';
+import { criarBancoDeTeste, migrarComTrava, PASTA_MIGRACOES } from '../apoio/banco.ts';
 import type { BancoDeTeste } from '../apoio/banco.ts';
 import { Banco } from '../../src/shared/db/banco.ts';
-import { lerMigracoes, migrar } from '../../src/shared/db/migrador.ts';
+import { lerMigracoes } from '../../src/shared/db/migrador.ts';
 
 let b: BancoDeTeste;
 let api: Banco;
@@ -154,7 +154,7 @@ test('migração 0010 em banco da v1.0.0: cada evento ganha organização e o ad
   const antigo = await criarBancoDeTeste({ migrar: false });
   try {
     const todas = lerMigracoes(PASTA_MIGRACOES);
-    await migrar(antigo.dono, todas.filter((m) => m.versao < '0010'));
+    await migrarComTrava(antigo.dono, todas.filter((m) => m.versao < '0010'));
     const { rows: [ev] } = await antigo.dono.query<{ id: string }>(
       "insert into evento (slug, nome, inicio, fim, local, publicado) values ('legado', 'Evento legado', '2026-07-01', '2026-07-03', 'Fortaleza', true) returning id");
     const pessoa = async (n: number) => um((await antigo.dono.query<{ id: string }>(
@@ -164,7 +164,7 @@ test('migração 0010 em banco da v1.0.0: cada evento ganha organização e o ad
       `insert into membro_organizacao (evento_id, pessoa_id, papel, criado_em) values
          ($1, $2, 'admin', '2026-01-01'), ($1, $3, 'admin', '2026-02-01'), ($1, $4, 'credenciamento', '2025-01-01')`,
       [ev?.id, primeira, segunda, terceira]);
-    await migrar(antigo.dono, todas);
+    await migrarComTrava(antigo.dono, todas);
     const { rows } = await antigo.dono.query<{ nome: string; pessoa_id: string; papel: string }>(
       `select o.nome, m.pessoa_id, m.papel from evento e join organizacao o on o.id = e.organizacao_id
        join organizacao_membro m on m.organizacao_id = o.id where e.slug = 'legado' order by m.papel desc`);

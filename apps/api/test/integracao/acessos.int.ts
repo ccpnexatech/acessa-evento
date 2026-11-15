@@ -6,10 +6,10 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import type pg from 'pg';
-import { criarBancoDeTeste, PASTA_MIGRACOES } from '../apoio/banco.ts';
+import { criarBancoDeTeste, migrarComTrava, PASTA_MIGRACOES } from '../apoio/banco.ts';
 import type { BancoDeTeste } from '../apoio/banco.ts';
 import { Banco } from '../../src/shared/db/banco.ts';
-import { lerMigracoes, migrar } from '../../src/shared/db/migrador.ts';
+import { lerMigracoes } from '../../src/shared/db/migrador.ts';
 
 let b: BancoDeTeste;
 let api: Banco;
@@ -236,7 +236,7 @@ test('migração 0011 em banco da v1.0.0: ingressos e check-ins antigos ganham c
   const antigo = await criarBancoDeTeste({ migrar: false });
   try {
     const todas = lerMigracoes(PASTA_MIGRACOES);
-    await migrar(antigo.dono, todas.filter((m) => m.versao < '0010'));
+    await migrarComTrava(antigo.dono, todas.filter((m) => m.versao < '0010'));
     const q = async <T extends pg.QueryResultRow>(sql: string, v: unknown[] = []) => (await antigo.dono.query<T>(sql, v)).rows;
     const evento = um(await q<{ id: string }>("insert into evento (slug, nome, inicio, fim, local, publicado) values ('legado', 'Legado', '2026-07-01', '2026-07-03', 'Fortaleza', true) returning id")).id;
     const pessoa = async (n: number) => um(await q<{ id: string }>('insert into pessoa (email_cifrado, email_hash, nome_cracha) values ($1, $2, $3) returning id', [Buffer.from('c'), hash(n), `p${n}`])).id;
@@ -245,7 +245,7 @@ test('migração 0011 em banco da v1.0.0: ingressos e check-ins antigos ganham c
     const ingressoCancelado = await emitirIngresso(antigo.dono, evento, cancelada);
     await q('update ingresso set cancelado_em = now() where id = $1', [ingressoCancelado]);
     await q("insert into checkin (id, ingresso_id, evento_id, portao, metodo, feito_em) values ($1, $2, $3, 'Portão 1', 'qr', '2026-07-01T08:00:00Z')", [randomUUID(), ingressoAtivo, evento]);
-    await migrar(antigo.dono, todas);
+    await migrarComTrava(antigo.dono, todas);
     const creds = await q<{ categoria: string; revogada: boolean }>('select categoria, revogada_em is not null as revogada from credencial order by revogada_em nulls first');
     assert.deepEqual(creds, [{ categoria: 'congressista', revogada: false }, { categoria: 'congressista', revogada: true }]);
     const checkin = um(await q<{ ok: boolean; sentido: string; resultado: string }>(

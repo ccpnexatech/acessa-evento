@@ -7,6 +7,7 @@ import pg from 'pg';
 import { randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { lerMigracoes, migrar } from '../../src/shared/db/migrador.ts';
+import type { Migracao } from '../../src/shared/db/migrador.ts';
 
 const TRAVA_TESTES = 4_206_001;
 
@@ -18,6 +19,24 @@ export interface BancoDeTeste {
   /** Cliente como dono: monta dados sem passar pela RLS. */
   readonly dono: pg.Client;
   apagar(): Promise<void>;
+}
+
+/**
+ * Aplica migrações num banco criado com `migrar: false`, segurando a mesma trava
+ * da criação. Sem ela, o teste que migra "em duas etapas" disputaria o papel
+ * app_api (que é do cluster) com outro arquivo de teste criando o seu banco.
+ */
+export async function migrarComTrava(cliente: pg.Client, migracoes: readonly Migracao[]): Promise<void> {
+  const base = process.env['DATABASE_URL_TESTE'];
+  if (!base) throw new Error('DATABASE_URL_TESTE ausente.');
+  const admin = new pg.Client({ connectionString: base, connectionTimeoutMillis: 5_000 });
+  await admin.connect();
+  try {
+    await admin.query('select pg_advisory_lock($1)', [TRAVA_TESTES]);
+    await migrar(cliente, migracoes);
+  } finally {
+    await admin.end();
+  }
 }
 
 export async function criarBancoDeTeste(opcoes: { migrar?: boolean } = {}): Promise<BancoDeTeste> {
