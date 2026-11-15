@@ -48,6 +48,11 @@ function Rotas() {
         <Stack.Screen name="atividade/[id]" />
         <Stack.Screen name="inscricao/[slug]" />
         <Stack.Screen name="credenciamento" />
+        <Stack.Screen name="areas" />
+        <Stack.Screen name="hoje/[slug]" />
+        <Stack.Screen name="leitor/[slug]" />
+        <Stack.Screen name="credenciais" />
+        <Stack.Screen name="portal/[id]" />
       </Stack.Protected>
       <Stack.Protected guard={!logado}>
         <Stack.Screen name="entrar" />

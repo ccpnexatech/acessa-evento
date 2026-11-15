@@ -15,6 +15,7 @@ export default function Ajuda() {
       onSair={() => void sair()}
       onVerEventos={() => router.push('/eventos')}
       onAssistente={() => router.push('/assistente')}
+      onAreas={() => router.push('/areas')}
       {...(equipe.dados?.length ? { onCredenciamento: () => router.push('/credenciamento') } : {})}
     />
   );

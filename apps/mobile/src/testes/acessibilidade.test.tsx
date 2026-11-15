@@ -32,6 +32,12 @@ import { ProvedorCredenciamento } from '../features/credenciamento/ProvedorCrede
 import { FluxoCredenciamento } from '../features/credenciamento/FluxoCredenciamento';
 import type { PropsLeitor } from '../features/credenciamento/FluxoCredenciamento';
 import { AGORA, CAIO, PACOTE, token } from '../features/credenciamento/fixtures';
+import { ProvedorLeitor } from '../features/acessos/ProvedorLeitor';
+import { FluxoLeitor } from '../features/acessos/FluxoLeitor';
+import { AGORA as AGORA_LEITOR, INGRESSO_CAIO, PACOTE as PACOTE_ACESSOS, qr } from '../features/acessos/fixtures';
+import { TelaAreas, TelaCredenciais, TelaHoje } from '../features/areas/telas';
+import { TelaPortal } from '../features/areas/TelaPortal';
+import { apiFalsaAreas } from '../features/areas/fixtures';
 import { TelaErro } from '../shared/ui/TelaErro';
 import { auditar, descrever } from './auditoria';
 import type { No } from './auditoria';
@@ -69,6 +75,29 @@ function LeitorFalso({ onLer }: PropsLeitor) {
     </Pressable>
   );
 }
+
+const redeLeitor = (async (_m: string, caminho: string) =>
+  ({ status: 200, dados: caminho.endsWith('/pacote') ? PACOTE_ACESSOS : { resultado: [] }, etag: null })) as Requisitor;
+
+function CameraDoLeitor({ onLer }: PropsLeitor) {
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel="Simular leitura" style={{ minHeight: 48 }} onPress={() => onLer(qr({ i: INGRESSO_CAIO }))}>
+      <Text>Câmera</Text>
+    </Pressable>
+  );
+}
+
+const leitorPorPonto = () => (
+  <ProvedorLeitor slug="jornada-2027" requisitar={redeLeitor} cofre={cofreEmMemoria()} gerarId={() => '00000000-0000-4000-8000-000000000009'} agora={() => AGORA_LEITOR}>
+    <FluxoLeitor Leitor={CameraDoLeitor} vibrar={jest.fn()} onSair={jest.fn()} agora={() => AGORA_LEITOR} />
+  </ProvedorLeitor>
+);
+const lerNoPonto = async (ponto: string, titulo: string) => {
+  await fireEvent.press(await screen.findByRole('radio', { name: ponto }));
+  await fireEvent.press(screen.getByRole('button', { name: 'Ler QR' }));
+  await fireEvent.press(screen.getByRole('button', { name: 'Simular leitura' }));
+  await screen.findByRole('header', { name: titulo });
+};
 
 const servicoAssistente = { salvo: async () => ASSISTENTE, sincronizar: async () => ASSISTENTE, avaliar: async () => undefined, enviarPendentes: async () => 0 };
 
@@ -146,6 +175,32 @@ const CASOS: readonly Caso[] = [
       await screen.findByRole('header', { name: 'Pode entrar' });
     },
   },
+  {
+    tela: 'Minhas áreas',
+    montar: () => <TelaAreas api={apiFalsaAreas().api} onHoje={jest.fn()} onLeitor={jest.fn()} onPortal={jest.fn()} onCredenciais={jest.fn()} onVoltar={jest.fn()} />,
+    preparar: () => screen.findByRole('header', { name: 'Convites' }),
+  },
+  {
+    tela: 'Chegou o dia',
+    montar: () => <TelaHoje api={apiFalsaAreas().api} slug="jornada-2027" onLeitor={jest.fn()} onVoltar={jest.fn()} />,
+    preparar: () => screen.findByRole('header', { name: 'Pede atenção' }),
+  },
+  {
+    tela: 'Minhas credenciais',
+    montar: () => <TelaCredenciais api={apiFalsaAreas().api} onVoltar={jest.fn()} />,
+    preparar: () => screen.findByRole('image', { name: /QR da credencial/ }),
+  },
+  {
+    tela: 'Espaço do expositor',
+    montar: () => <TelaPortal api={apiFalsaAreas().api} id="pe1" onVoltar={jest.fn()} />,
+    preparar: async () => {
+      await fireEvent.press(await screen.findByRole('button', { name: 'Escolher estande' }));
+      await fireEvent.press(screen.getByRole('button', { name: 'Ler o contrato' }));
+    },
+  },
+  { tela: 'Leitor por ponto', montar: leitorPorPonto, preparar: () => screen.findByRole('radio', { name: 'Porta VIP' }) },
+  { tela: 'Leitura liberada com meia-entrada a conferir', montar: leitorPorPonto, preparar: () => lerNoPonto('Portão 1', 'Pode entrar') },
+  { tela: 'Leitura barrada na zona', montar: leitorPorPonto, preparar: () => lerNoPonto('Porta VIP', 'Não entra aqui') },
 ];
 
 const MATRIZ = CASOS.flatMap((c) => temas.map((t) => [c.tela, t, c] as const));

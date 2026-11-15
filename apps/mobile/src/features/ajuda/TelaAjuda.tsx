@@ -18,14 +18,17 @@ interface Props {
   /** Só aparece para quem é da equipe de credenciamento. */
   readonly onCredenciamento?: () => void;
   readonly onAssistente?: () => void;
+  /** Equipe, organização, expositor e credenciais: as outras visões da mesma conta. */
+  readonly onAreas?: () => void;
 }
 
-export function TelaAjuda({ nome, onSair, onVerEventos, onCredenciamento, onAssistente }: Props) {
+export function TelaAjuda({ nome, onSair, onVerEventos, onCredenciamento, onAssistente, onAreas }: Props) {
   const { cores, contraste, definirContraste } = useTema();
   return (
     <Tela titulo="Ajuda">
       <Paragrafo>{nome ? `Você entrou como ${nome}.` : 'Você entrou.'}</Paragrafo>
       {onAssistente ? <Botao rotulo="Assistente do evento" onPress={onAssistente} /> : null}
+      {onAreas ? <Botao variante="secundario" rotulo="Minhas áreas" onPress={onAreas} /> : null}
       {onCredenciamento ? <Botao variante="secundario" rotulo="Credenciamento" onPress={onCredenciamento} /> : null}
       {onVerEventos ? <Botao variante="texto" rotulo="Ver eventos e inscrições" onPress={onVerEventos} /> : null}
       <Text accessibilityRole="header" style={[estilos.secao, { color: cores.ink900 }]}>Alto contraste</Text>
