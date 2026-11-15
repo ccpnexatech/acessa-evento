@@ -13,8 +13,10 @@ export const PREFIXO = 'AE1';
 export interface ConteudoQr {
   /** Id da chave que assinou, para trocar de chave sem invalidar tudo de uma vez. */
   readonly k: string;
-  /** Ingresso. */
-  readonly i: string;
+  /** Ingresso (QR do congressista, igual ao da v1.0.0). */
+  readonly i?: string;
+  /** Credencial sem ingresso (ADR 0030). O QR tem `i` ou `c`, nunca os dois. */
+  readonly c?: string;
   /** Evento. */
   readonly e: string;
   /** Validade, em segundos desde 1970. */
@@ -61,8 +63,12 @@ export function deBase64url(texto: string): Uint8Array | null {
 const utf8 = new TextEncoder();
 const deUtf8 = new TextDecoder('utf-8', { fatal: true });
 
-export function emitirToken(c: Omit<ConteudoQr, 'k'>, assinador: Assinador): string {
-  const conteudo = paraBase64url(utf8.encode(JSON.stringify({ k: assinador.kid, i: c.i, e: c.e, x: c.x })));
+export type AlvoQr = { readonly i: string } | { readonly c: string };
+
+export function emitirToken(c: AlvoQr & Pick<ConteudoQr, 'e' | 'x'>, assinador: Assinador): string {
+  // A ordem das chaves faz parte do formato: o vetor de teste confere o texto exato.
+  const alvo = 'i' in c ? { i: c.i } : { c: c.c };
+  const conteudo = paraBase64url(utf8.encode(JSON.stringify({ k: assinador.kid, ...alvo, e: c.e, x: c.x })));
   const assinado = `${PREFIXO}.${conteudo}`;
   return `${assinado}.${paraBase64url(assinador.assinar(utf8.encode(assinado)))}`;
 }
@@ -82,8 +88,10 @@ export function lerToken(texto: string, verificador: Verificador, eventoId: stri
   let conteudo: ConteudoQr;
   try {
     const c = JSON.parse(deUtf8.decode(bytes)) as Partial<ConteudoQr>;
-    if (typeof c.k !== 'string' || typeof c.i !== 'string' || typeof c.e !== 'string' || typeof c.x !== 'number') return { ok: false, motivo: 'formato' };
-    conteudo = { k: c.k, i: c.i, e: c.e, x: c.x };
+    if (typeof c.k !== 'string' || typeof c.e !== 'string' || typeof c.x !== 'number') return { ok: false, motivo: 'formato' };
+    const [temIngresso, temCredencial] = [typeof c.i === 'string', typeof c.c === 'string'];
+    if (temIngresso === temCredencial) return { ok: false, motivo: 'formato' };
+    conteudo = temIngresso ? { k: c.k, i: c.i as string, e: c.e, x: c.x } : { k: c.k, c: c.c as string, e: c.e, x: c.x };
   } catch {
     return { ok: false, motivo: 'formato' };
   }

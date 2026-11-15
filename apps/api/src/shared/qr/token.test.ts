@@ -59,6 +59,22 @@ test('recusa assinatura de outra chave, conteúdo trocado, outro evento, vencido
   }
 });
 
+test('vetor fixo da credencial sem ingresso (ADR 0030): campo c no lugar de i', () => {
+  const credencial = '01900000-0000-7000-8000-0000000000c1';
+  const token = emitirToken({ c: credencial, e: VETOR.evento, x: VETOR.validade }, assinador);
+  // segredo-permitido: vetor público de teste, o mesmo do app
+  assert.equal(token, 'AE1.eyJrIjoidGVzdGUtMSIsImMiOiIwMTkwMDAwMC0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwYzEiLCJlIjoiMDE5MDAwMDAtMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMGUxIiwieCI6MTc4MzEyMzIwMH0.GUlMtyjEHA9PGHHZxnYizgnsbopw-D6qGQeMeA9XdDtI2WduVo6elPeuquoXoX4l0I5PPJ1GJJD25CyCxI7XDg'); // segredo-permitido
+  assert.deepEqual(lerToken(token, verificador, VETOR.evento, AGORA), { ok: true, conteudo: { k: VETOR.kid, c: credencial, e: VETOR.evento, x: VETOR.validade } });
+  // Com os dois campos, ou com nenhum, o QR é recusado mesmo bem assinado.
+  const assinar = (conteudo: Record<string, unknown>) => {
+    const texto = `AE1.${paraBase64url(new TextEncoder().encode(JSON.stringify(conteudo)))}`;
+    return `${texto}.${paraBase64url(assinador.assinar(new TextEncoder().encode(texto)))}`;
+  };
+  const base = { k: VETOR.kid, e: VETOR.evento, x: VETOR.validade };
+  assert.deepEqual(lerToken(assinar({ ...base, i: VETOR.ingresso, c: credencial }), verificador, VETOR.evento, AGORA), { ok: false, motivo: 'formato' });
+  assert.deepEqual(lerToken(assinar(base), verificador, VETOR.evento, AGORA), { ok: false, motivo: 'formato' });
+});
+
 test('chave privada ida e volta; recusa chave que não é Ed25519', () => {
   const k = novaChavePrivada();
   assert.equal(assinadorEd25519('a', chavePrivadaDeBase64(chavePrivadaParaBase64(k))).chavePublica, assinadorEd25519('a', k).chavePublica);
