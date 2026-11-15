@@ -53,6 +53,8 @@ export function avaliarIngresso(ingressoId: string, pacote: Pacote, locais: read
 export function avaliarLeitura(texto: string, pacote: Pacote, verificador: Verificador, locais: readonly CheckinLocal[], agoraMs: number): Resultado {
   const leitura = lerToken(texto, verificador, pacote.evento.id, Math.floor(agoraMs / 1000));
   if (!leitura.ok) return { tipo: 'invalido', motivo: leitura.motivo };
+  // Este fluxo é o da v1.0.0 e só conhece ingresso; credencial sem ingresso é lida pelo leitor por ponto.
+  if (!leitura.conteudo.i) return { tipo: 'invalido', motivo: 'formato' };
   return avaliarIngresso(leitura.conteudo.i, pacote, locais);
 }
 

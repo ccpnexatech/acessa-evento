@@ -1,6 +1,6 @@
 /**
  * Cópia (só leitura) do formato do token do QR definido na API em
- * apps/api/src/shared/qr/token.ts (ADR 0006 e 0022). Puro, sem I/O.
+ * apps/api/src/shared/qr/token.ts (ADR 0006, 0022 e 0030). Puro, sem I/O.
  * O vetor de teste é o mesmo nos dois lados: mudou um, quebra o outro.
  *
  *   AE1.<conteúdo em base64url>.<assinatura Ed25519 em base64url>
@@ -14,8 +14,10 @@ export const PREFIXO = 'AE1';
 export interface ConteudoQr {
   /** Id da chave que assinou, para trocar de chave sem invalidar tudo de uma vez. */
   readonly k: string;
-  /** Ingresso. */
-  readonly i: string;
+  /** Ingresso (QR do congressista, igual ao da v1.0.0). */
+  readonly i?: string;
+  /** Credencial sem ingresso (ADR 0030). O QR tem `i` ou `c`, nunca os dois. */
+  readonly c?: string;
   /** Evento. */
   readonly e: string;
   /** Validade, em segundos desde 1970. */
@@ -74,8 +76,10 @@ export function lerToken(texto: string, verificador: Verificador, eventoId: stri
   let conteudo: ConteudoQr;
   try {
     const c = JSON.parse(deAscii(bytes)) as Partial<ConteudoQr>;
-    if (typeof c.k !== 'string' || typeof c.i !== 'string' || typeof c.e !== 'string' || typeof c.x !== 'number') return { ok: false, motivo: 'formato' };
-    conteudo = { k: c.k, i: c.i, e: c.e, x: c.x };
+    if (typeof c.k !== 'string' || typeof c.e !== 'string' || typeof c.x !== 'number') return { ok: false, motivo: 'formato' };
+    const [temIngresso, temCredencial] = [typeof c.i === 'string', typeof c.c === 'string'];
+    if (temIngresso === temCredencial) return { ok: false, motivo: 'formato' };
+    conteudo = temIngresso ? { k: c.k, i: c.i as string, e: c.e, x: c.x } : { k: c.k, c: c.c as string, e: c.e, x: c.x };
   } catch {
     return { ok: false, motivo: 'formato' };
   }

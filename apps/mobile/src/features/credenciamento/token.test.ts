@@ -21,6 +21,12 @@ describe('token do QR no aparelho da equipe', () => {
     });
   });
 
+  it('aceita a credencial sem ingresso (ADR 0030): mesmo vetor da API, campo c', () => {
+    const credencial = '01900000-0000-7000-8000-0000000000c1';
+    const token = 'AE1.eyJrIjoidGVzdGUtMSIsImMiOiIwMTkwMDAwMC0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwYzEiLCJlIjoiMDE5MDAwMDAtMDAwMC03MDAwLTgwMDAtMDAwMDAwMDAwMGUxIiwieCI6MTc4MzEyMzIwMH0.GUlMtyjEHA9PGHHZxnYizgnsbopw-D6qGQeMeA9XdDtI2WduVo6elPeuquoXoX4l0I5PPJ1GJJD25CyCxI7XDg'; // segredo-permitido: vetor público de teste
+    expect(lerToken(token, verificador, VETOR.evento, AGORA)).toEqual({ ok: true, conteudo: { k: VETOR.kid, c: credencial, e: VETOR.evento, x: VETOR.validade } });
+  });
+
   it('recusa assinatura alterada, outra chave, outro evento e vencido', () => {
     const [p, c, s = ''] = VETOR.token.split('.');
     const trocada = `${p}.${c}.${s.startsWith('A') ? `B${s.slice(1)}` : `A${s.slice(1)}`}`;
