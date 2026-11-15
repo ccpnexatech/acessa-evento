@@ -69,6 +69,31 @@ Para quem não é da equipe, o evento na área do organizador responde `404`.
 
 A rota `/credenciamento` da v1.0.0 continua igual.
 
+### Feira, portal do expositor e contratos
+
+| Método e rota | O que faz |
+| --- | --- |
+| `GET /organizador/eventos/:slug/feira` | Parceiros do evento com estandes, nível calculado, credenciais, montagem, contrato e serviços |
+| `POST /organizador/eventos/:slug/montagens/:parceiroEventoId/analisar` | Aprova ou recusa a montagem (recusar exige dizer o que corrigir) |
+| `PATCH /organizador/eventos/:slug/pedidos-servico/:id` | Confirma ou cancela um pedido de serviço |
+| `GET` e `POST /organizador/eventos/:slug/contratos` | Lista e cria contrato, a partir de um modelo ou de texto próprio |
+| `PATCH /organizador/eventos/:slug/contratos/:id` | Altera o rascunho; depois de enviado o texto não muda |
+| `POST /organizador/contratos/:id/enviar` e `…/cancelar` | Envia ao contratado ou cancela |
+| `POST /organizador/contratos/:id/registrar-assinatura` | Registra assinatura feita fora do app (gov.br ou provedor), com o protocolo |
+| `GET /portal` | Participações em que a pessoa é responsável ou equipe de um parceiro |
+| `GET /portal/:id` | O espaço do expositor: resumo, próximo nível, estandes, marca, serviços, montagem, equipe, contratos e o que falta fazer |
+| `PUT` e `DELETE /portal/:id/estandes/:estandeId` | Reserva por 48 horas (`409` se outro reservou antes) e desiste da reserva |
+| `PUT /portal/:id/perfil` | Marca no app; logo só com descrição para leitor de tela |
+| `PUT` e `DELETE /portal/:id/servicos/:servicoId` | Pede um serviço (valor calculado) e cancela |
+| `PUT /portal/:id/montagem` | Montagem básica, montadora própria ou estande diferente |
+| `POST /portal/:id/convites` | A organização convida o responsável; o responsável convida a equipe |
+| `POST /portal/:id/credenciais` | Emite a credencial de alguém da equipe; só com contrato assinado e dentro do limite por metragem |
+| `GET /contratos` | Contratos enviados a quem está logado, com o texto para ler |
+| `POST /contratos/:id/assinar` | Aceite no app por quem contrata |
+| `GET /eventos/:slug/expositores` | Público: expositores com perfil publicado (ordem alfabética, nível como rótulo) e o mapa da feira |
+
+Um expositor nunca enxerga o espaço de outro: para ele, a participação alheia responde `404`.
+
 ### Cadastros simples
 
 Cada cadastro tem as mesmas quatro rotas: `GET` (lista), `POST` (cria), `PATCH /:id` (altera parte) e `DELETE /:id`.

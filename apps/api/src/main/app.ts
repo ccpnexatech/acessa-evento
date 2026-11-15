@@ -53,6 +53,10 @@ import { AcessosServico } from '../modules/acessos/application/acessos.ts';
 import type { DependenciasAcessos } from '../modules/acessos/application/acessos.ts';
 import { repositorioAcessos } from '../modules/acessos/adapters/postgres/repositorio.ts';
 import { registrarRotasAcessos } from '../modules/acessos/adapters/http/rotas-acessos.ts';
+import { FeiraServico } from '../modules/feira/application/feira.ts';
+import type { DependenciasFeira } from '../modules/feira/application/feira.ts';
+import { repositorioFeira } from '../modules/feira/adapters/postgres/repositorio.ts';
+import { registrarRotasFeira } from '../modules/feira/adapters/http/rotas-feira.ts';
 import { ErroHttp } from '../shared/http/tipos.ts';
 import type { Requisicao } from '../shared/http/tipos.ts';
 import { ErroConta } from '../modules/conta/domain/regras.ts';
@@ -80,6 +84,8 @@ export interface Dependencias {
   readonly organizacao?: DependenciasOrganizacao;
   /** Regras de zona, credenciais, leitor por ponto e "Chegou o dia" (ADR 0026). */
   readonly acessos?: DependenciasAcessos;
+  /** Feira, portal do expositor e contratos (ADR 0028). */
+  readonly feira?: DependenciasFeira;
   /** Para testes; em produção vem de SENTRY_DSN. */
   readonly relator?: RelatorErros;
 }
@@ -136,6 +142,10 @@ export function criarApp(d: Dependencias): Server {
 
   if (d.conta && d.acessos) {
     registrarRotasAcessos(roteador, new AcessosServico(d.acessos), identificacao(d.conta));
+  }
+
+  if (d.conta && d.feira) {
+    registrarRotasFeira(roteador, new FeiraServico(d.feira), identificacao(d.conta));
   }
 
   const relator = d.relator ?? (d.config.sentryDsn
@@ -227,6 +237,9 @@ export const dependenciasOrganizacao = (banco: Banco, conta: DependenciasConta, 
 
 export const dependenciasAcessos = (banco: Banco, conta: DependenciasConta, assinador: Assinador): DependenciasAcessos =>
   ({ repositorio: repositorioAcessos(banco), auditoria: conta.auditoria, assinador, protecao: conta.protecao, agoraMs: () => Date.now() });
+
+export const dependenciasFeira = (banco: Banco, conta: DependenciasConta, config: ConfigBanco, logger: Logger): DependenciasFeira =>
+  ({ repositorio: repositorioFeira(banco), auditoria: conta.auditoria, protecao: conta.protecao, enviarEmail: enviadorDeTexto(config, logger) });
 
 export const dependenciasAssistente = (banco: Banco): RepositorioAssistente => repositorioAssistente(banco);
 

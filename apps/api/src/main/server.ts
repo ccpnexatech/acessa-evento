@@ -6,7 +6,7 @@ import { relatorNulo, relatorSentry } from '../shared/erros/relator.ts';
 import { Banco } from '../shared/db/banco.ts';
 import { lerConfig } from './config.ts';
 import type { ConfigBanco } from './config.ts';
-import { assinadorQr, criarApp, dependenciasAcessos, dependenciasAssistente, dependenciasCadastros, dependenciasConta, dependenciasCredenciamento, dependenciasInscricao, dependenciasOrganizacao, dependenciasProgramacao, verificadoresPadrao } from './app.ts';
+import { assinadorQr, criarApp, dependenciasAcessos, dependenciasAssistente, dependenciasCadastros, dependenciasConta, dependenciasCredenciamento, dependenciasFeira, dependenciasInscricao, dependenciasOrganizacao, dependenciasProgramacao, verificadoresPadrao } from './app.ts';
 
 const logger = new LoggerJson((linha) => process.stdout.write(linha));
 
@@ -50,6 +50,7 @@ function modulos(b: Banco, c: ConfigBanco) {
     credenciamento: dependenciasCredenciamento(b, conta, assinador),
     assistente: dependenciasAssistente(b),
     cadastros: dependenciasCadastros(b, conta),
+    feira: dependenciasFeira(b, conta, c, logger),
     acessos: dependenciasAcessos(b, conta, assinador),
     organizacao: dependenciasOrganizacao(b, conta, c, logger),
   };
