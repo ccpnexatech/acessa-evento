@@ -1,0 +1,110 @@
+{
+  "algo-deu-errado": {
+    "largura": 640,
+    "altura": 640,
+    "familia": "estado",
+    "svg": "323d75d1d93463ca"
+  },
+  "boas-vindas": {
+    "largura": 960,
+    "altura": 960,
+    "familia": "cena",
+    "svg": "957dfac5804e89af"
+  },
+  "cheguei-miniatura": {
+    "largura": 960,
+    "altura": 960,
+    "familia": "cena",
+    "svg": "64c67672eaf79fec"
+  },
+  "faixa-bandeirolas": {
+    "largura": 640,
+    "altura": 104,
+    "familia": "objeto",
+    "svg": "003260954530b802"
+  },
+  "ingresso": {
+    "largura": 640,
+    "altura": 640,
+    "familia": "objeto",
+    "svg": "8369594324d9b655"
+  },
+  "nada-por-aqui": {
+    "largura": 640,
+    "altura": 640,
+    "familia": "estado",
+    "svg": "6a6922c7986af3a2"
+  },
+  "sem-internet": {
+    "largura": 640,
+    "altura": 640,
+    "familia": "estado",
+    "svg": "627244501aa98132"
+  },
+  "simbolo-audiodescricao": {
+    "largura": 96,
+    "altura": 96,
+    "familia": "simbolo",
+    "svg": "741317e84557bda7"
+  },
+  "simbolo-aviso": {
+    "largura": 96,
+    "altura": 96,
+    "familia": "simbolo",
+    "svg": "9b4e86bf9a7ba717"
+  },
+  "simbolo-camera": {
+    "largura": 96,
+    "altura": 96,
+    "familia": "simbolo",
+    "svg": "4477e941b511c346"
+  },
+  "simbolo-favorito": {
+    "largura": 96,
+    "altura": 96,
+    "familia": "simbolo",
+    "svg": "ce4655449976c339"
+  },
+  "simbolo-ingresso": {
+    "largura": 96,
+    "altura": 96,
+    "familia": "simbolo",
+    "svg": "a196759f32b23e0a"
+  },
+  "simbolo-legenda": {
+    "largura": 96,
+    "altura": 96,
+    "familia": "simbolo",
+    "svg": "71503d804411bbef"
+  },
+  "simbolo-libras": {
+    "largura": 96,
+    "altura": 96,
+    "familia": "simbolo",
+    "svg": "f87c30436a8513c3"
+  },
+  "simbolo-mapa": {
+    "largura": 96,
+    "altura": 96,
+    "familia": "simbolo",
+    "svg": "dd3636e41deea0a0"
+  },
+  "simbolo-privacidade": {
+    "largura": 96,
+    "altura": 96,
+    "familia": "simbolo",
+    "svg": "40a4057262cdcb3b"
+  },
+  "simbolo-sem-degraus": {
+    "largura": 96,
+    "altura": 96,
+    "familia": "simbolo",
+    "svg": "f7cacb931ccfc8e6"
+  },
+  "tudo-pronto": {
+    "largura": 640,
+    "altura": 640,
+    "familia": "estado",
+    "svg": "d4edf504d42c9419"
+  }
+}
