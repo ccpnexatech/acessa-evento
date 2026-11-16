@@ -32,3 +32,4 @@
 | 0028 | [Feira com estande reservado no banco, nível derivado e contrato que libera](0028-feira-nivel-derivado-e-contrato-que-libera.md) | Aceita |
 | 0029 | [API do organizador: cadastros declarativos e o banco como autoridade](0029-api-do-organizador-cadastros-declarativos.md) | Aceita |
 | 0030 | [QR da credencial sem ingresso: mesmo formato, campo `c`](0030-qr-da-credencial-sem-ingresso.md) | Aceita |
+| 0031 | [Xilos no app como máscara PNG colorida pelo tema](0031-xilos-no-app-como-mascara-png.md) | Aceita |
