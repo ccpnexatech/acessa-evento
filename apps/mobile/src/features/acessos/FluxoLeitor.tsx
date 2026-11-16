@@ -9,6 +9,7 @@ import { AccessibilityInfo, ActivityIndicator, StyleSheet, Text, TextInput, View
 import { espaco, raio, tamanho } from '@acessa-evento/tokens';
 import { useTema } from '../../shared/tema/TemaProvider';
 import { Tocavel } from '../../shared/ui/Tocavel';
+import { Xilo } from '../../shared/xilo/Xilo';
 import { Botao, CaixaMarcar, MensagemErro, OpcaoRadio, Paragrafo, Tela } from '../../shared/ui/componentes';
 import type { PropsLeitor } from '../credenciamento/FluxoCredenciamento';
 import { ORIENTACAO_RECURSO, quando } from '../credenciamento/modelo';
@@ -45,6 +46,7 @@ export function FluxoLeitor({ Leitor, vibrar, onSair, agora = Date.now }: Props)
         <MensagemErro texto={l.erro} />
         {!l.carregando ? (
           <>
+            <View style={estilos.cena}><Xilo nome="semInternet" largura={200} decorativa /></View>
             <Paragrafo>Precisamos de internet uma vez para baixar a lista do evento. Depois, o leitor funciona sem conexão.</Paragrafo>
             <Botao rotulo="Baixar a lista" onPress={() => void l.atualizar()} />
           </>
@@ -273,6 +275,7 @@ function TelaManual({ credencial: c, onConfirmar, onVoltar }: { credencial: Cred
 
 const estilos = StyleSheet.create({
   status: { padding: espaco['3'], borderRadius: raio.md },
+  cena: { alignItems: 'center' },
   forte: { fontSize: 18, lineHeight: 26, fontWeight: '700' },
   secao: { fontSize: 20, lineHeight: 28, fontWeight: '700' },
   grupo: { gap: espaco['2'] },

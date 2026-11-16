@@ -4,6 +4,7 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@acessa-evento/tokens": "0.1.0",
+    "@acessa-evento/xilos": "0.1.0",
     "@expo/metro-runtime": "58.0.17",
     "@noble/curves": "1.9.7",
     "expo": "~58.0.23",

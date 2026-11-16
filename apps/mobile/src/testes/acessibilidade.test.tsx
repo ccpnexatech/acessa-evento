@@ -38,6 +38,7 @@ import { AGORA as AGORA_LEITOR, INGRESSO_CAIO, PACOTE as PACOTE_ACESSOS, qr } fr
 import { TelaAreas, TelaCredenciais, TelaHoje } from '../features/areas/telas';
 import { TelaPortal } from '../features/areas/TelaPortal';
 import { apiFalsaAreas } from '../features/areas/fixtures';
+import { TelaAbertura } from '../features/abertura/TelaAbertura';
 import { TelaErro } from '../shared/ui/TelaErro';
 import { auditar, descrever } from './auditoria';
 import type { No } from './auditoria';
@@ -175,6 +176,7 @@ const CASOS: readonly Caso[] = [
       await screen.findByRole('header', { name: 'Pode entrar' });
     },
   },
+  { tela: 'Abertura do app', montar: () => <TelaAbertura onComecar={jest.fn()} onExplorar={jest.fn()} />, preparar: () => screen.findByRole('header', { name: 'O que o app pede, e por quê' }) },
   {
     tela: 'Minhas áreas',
     montar: () => <TelaAreas api={apiFalsaAreas().api} onHoje={jest.fn()} onLeitor={jest.fn()} onPortal={jest.fn()} onCredenciais={jest.fn()} onVoltar={jest.fn()} />,

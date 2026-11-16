@@ -11,6 +11,7 @@ import { useCarga } from '../../shared/hooks/useCarga';
 import { DesenhoQr } from '../../shared/qr/DesenhoQr';
 import { useTema } from '../../shared/tema/TemaProvider';
 import { Botao, MensagemErro, Paragrafo, Tela } from '../../shared/ui/componentes';
+import { Xilo } from '../../shared/xilo/Xilo';
 import { NOME_DA_CATEGORIA } from '../acessos/leitor';
 import { papeisPorExtenso, periodo, podeLer } from './api';
 import type { ApiAreas, Aviso, Convite } from './api';
@@ -113,6 +114,7 @@ export function TelaAreas({ api, onHoje, onLeitor, onPortal, onCredenciais, onVo
           <Botao variante="secundario" rotulo="Ver credenciais e QR" onPress={onCredenciais} />
         </Secao>
       ) : null}
+      {vazio ? <View style={estilos.qr}><Xilo nome="nadaPorAqui" largura={200} decorativa /></View> : null}
       {vazio ? (
         <Paragrafo>Você ainda não faz parte da equipe de nenhum evento. Quando alguém convidar o seu e-mail, o convite aparece aqui.</Paragrafo>
       ) : null}
@@ -143,6 +145,7 @@ export function TelaHoje({ api, slug, onLeitor, onVoltar }: { api: ApiAreas; slu
             ]}
           />
           <Secao titulo={atencao.length ? 'Pede atenção' : 'Tudo em ordem'}>
+            {atencao.length === 0 ? <View style={estilos.qr}><Xilo nome="tudoPronto" largura={160} decorativa /></View> : null}
             {atencao.length === 0 ? <Paragrafo>Nenhum ponto de leitura precisa de você agora.</Paragrafo> : null}
             {atencao.map((p) => <Cartao key={p.id} tom="atencao" titulo={p.nome} linhas={[p.atencao]} />)}
           </Secao>
